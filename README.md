@@ -1,10 +1,6 @@
-# \# Alto Project :
+# Alto Project :
 
-# 
-
-## \## Auteurs :
-
-# 
+## Authors :
 
 \- AMEDRO Louis (Osiris-Sio)
 
@@ -18,13 +14,7 @@
 
 # 
 
-# ---
-
-
-
-## \## 🎯 Project Objective
-
-# 
+## 🎯 Project Objective
 
 Develop a mobile application that allows two users to establish a secure connection via a QR code pairing system, and then exchange end-to-end encrypted information.
 
