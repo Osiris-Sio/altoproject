@@ -6,6 +6,8 @@
 
 - PACE--BOULNOIS Lysandre (NovaChocolat)
 
+- CIUFFA Enzo (Fr0st16)
+
 ---
 
 ## 🎯 Objectif du Projet
