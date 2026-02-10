@@ -1,16 +1,34 @@
-# altoproject
+# \# Alto Project :
 
-A new Flutter project.
+# 
 
-## Getting Started
+## \## Auteurs :
 
-This project is a starting point for a Flutter application.
+# 
 
-A few resources to get you started if this is your first Flutter project:
+\- AMEDRO Louis (Osiris-Sio)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+\- PACE--BOULNOIS Lysandre (NovaChocolat)
+
+
+
+\- CIUFFA Enzo (frost16)
+
+# 
+
+# ---
+
+
+
+## \## 🎯 Project Objective
+
+# 
+
+Develop a mobile application that allows two users to establish a secure connection via a QR code pairing system, and then exchange end-to-end encrypted information.
+
+
+
+\*\*Provided Backend:\*\* The Spring Boot server is already developed and available at https://alto.samyn.ovh. You must develop the Flutter mobile application.
+
