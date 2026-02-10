@@ -1,0 +1,19 @@
+meta {
+  name: Finalize
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/pairing?relationCodeA=ALICE123
+  body: none
+  auth: inherit
+}
+
+params:query {
+  relationCodeA: ALICE123
+}
+
+settings {
+  encodeUrl: true
+}

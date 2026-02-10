@@ -1,0 +1,23 @@
+meta {
+  name: Init
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/pairing
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "relationCode": "ALICE123",
+    "userPublicKey": "pk_alice_xyz"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
