@@ -36,7 +36,7 @@ class PairingRelation {
     );
   }
 
-  /// Crée une relation depuis JSON (API response)
+  /// Crée une relation depuis JSON
   factory PairingRelation.fromJson(Map<String, dynamic> json) {
     return PairingRelation(
       relationCode: json['relationCode'] as String,
@@ -70,7 +70,7 @@ class PairingRelation {
     return remaining.isNegative ? Duration.zero : remaining;
   }
 
-  /// Calcule le pourcentage de temps écoulé (pour UI)
+  /// Calcule le pourcentage de temps écoulé
   double get progressPercentage {
     final total = expiresAt.difference(createdAt).inSeconds;
     final elapsed = DateTime.now().difference(createdAt).inSeconds;

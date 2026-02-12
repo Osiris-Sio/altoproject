@@ -65,7 +65,7 @@ class PairingApiService {
     }
   }
 
-  /// Match deux utilisateurs (appelé par le scanner)
+  /// Match deux utilisateurs
   /// PUT /pairing
   static Future<void> matchPairing({
     required String relationCodeA,
@@ -96,7 +96,7 @@ class PairingApiService {
     }
   }
 
-  /// Finalise un pairing (après match)
+  /// Finalise un pairing
   /// POST /pairing/finalize
   static Future<void> finalizePairing({
     required String relationCode,

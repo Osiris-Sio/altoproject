@@ -153,7 +153,7 @@ class ProfileNotifier extends ChangeNotifier {
   }
 
 
-  /// Réinitialise le pairing (nouveau QR Code)
+  /// Réinitialise le pairing
   Future<void> resetPairing() async {
     _stopTimers();
     _currentPairing = null;

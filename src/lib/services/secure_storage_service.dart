@@ -59,12 +59,12 @@ class SecureStorageService {
     return uuid != null && uuid.isNotEmpty;
   }
 
-  /// Supprime toutes les données utilisateur (pour réinitialisation)
+  /// Supprime toutes les données utilisateur
   static Future<void> clearAll() async {
     await _storage.deleteAll();
   }
 
-  /// Supprime uniquement la clé privée (pour sécurité)
+  /// Supprime uniquement la clé privée
   static Future<void> deletePrivateKey() async {
     await _storage.delete(key: _keyPrivateKey);
   }

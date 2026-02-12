@@ -1,27 +1,11 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:pointycastle/export.dart';
 import 'dart:convert';
+import 'package:pointycastle/export.dart';
+import 'package:basic_utils/basic_utils.dart';
 
 class CryptoService {
-  /// Génère une paire de clés RSA 2048 bits
-  static Future<AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>> generateRSAKeyPair() async {
-    final keyGen = RSAKeyGenerator()
-      ..init(
-        ParametersWithRandom(
-          RSAKeyGeneratorParameters(BigInt.parse('65537'), 2048, 64),
-          _getSecureRandom(),
-        ),
-      );
-
-    final pair = keyGen.generateKeyPair();
-    return AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(
-      pair.publicKey as RSAPublicKey,
-      pair.privateKey as RSAPrivateKey,
-    );
-  }
-
-  /// Génère un nombre aléatoire sécurisé pour la génération de clés
+  /// Génère un SecureRandom pour la génération de clés
   static SecureRandom _getSecureRandom() {
     final secureRandom = FortunaRandom();
     final random = Random.secure();
@@ -33,78 +17,77 @@ class CryptoService {
     return secureRandom;
   }
 
-  /// Convertit une clé publique RSA en format PEM (base64)
-  static String publicKeyToPem(RSAPublicKey publicKey) {
-    final modulus = publicKey.modulus!;
-    final exponent = publicKey.exponent!;
+  /// Génère une paire de clés RSA 2048 bits
+  /// Retourne les clés au format PEM standard
+  static Future<({String publicKeyPem, String privateKeyPem})> generateRSAKeyPair({
+    int bitLength = 2048,
+  }) async {
+    final keyGen = RSAKeyGenerator()
+      ..init(
+        ParametersWithRandom(
+          RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64),
+          _getSecureRandom(),
+        ),
+      );
 
-    // Encodage simple en base64 du modulus et exponent
-    final Map<String, String> keyData = {
-      'modulus': modulus.toString(),
-      'exponent': exponent.toString(),
-    };
+    final pair = keyGen.generateKeyPair();
+    final publicKey = pair.publicKey as RSAPublicKey;
+    final privateKey = pair.privateKey as RSAPrivateKey;
 
-    final jsonString = json.encode(keyData);
-    return base64.encode(utf8.encode(jsonString));
+    return (
+      publicKeyPem: CryptoUtils.encodeRSAPublicKeyToPem(publicKey),
+      privateKeyPem: CryptoUtils.encodeRSAPrivateKeyToPem(privateKey),
+    );
   }
 
-  /// Convertit une clé privée RSA en format PEM (base64)
-  static String privateKeyToPem(RSAPrivateKey privateKey) {
-    final Map<String, String> keyData = {
-      'modulus': privateKey.modulus!.toString(),
-      'privateExponent': privateKey.privateExponent!.toString(),
-      'p': privateKey.p!.toString(),
-      'q': privateKey.q!.toString(),
-    };
+  /// Chiffre un message avec une clé publique RSA (format PEM)
+  /// Retourne le résultat en Base64
+  static String encryptWithPublicKey({
+    required String recipientPublicKeyPem,
+    required String plaintext,
+  }) {
+    final RSAPublicKey publicKey = CryptoUtils.rsaPublicKeyFromPem(recipientPublicKeyPem);
 
-    final jsonString = json.encode(keyData);
-    return base64.encode(utf8.encode(jsonString));
+    final engine = OAEPEncoding(RSAEngine())
+      ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
+
+    final ciphertextBytes = engine.process(Uint8List.fromList(utf8.encode(plaintext)));
+    return base64Encode(ciphertextBytes);
+  }
+
+  /// Déchiffre un message avec une clé privée RSA (format PEM)
+  /// Le message chiffré doit être en Base64
+  static String decryptWithPrivateKey({
+    required String myPrivateKeyPem,
+    required String ciphertextB64,
+  }) {
+    final RSAPrivateKey privateKey = CryptoUtils.rsaPrivateKeyFromPem(myPrivateKeyPem);
+
+    final engine = OAEPEncoding(RSAEngine())
+      ..init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
+
+    final clearBytes = engine.process(base64Decode(ciphertextB64));
+    return utf8.decode(clearBytes);
   }
 
   /// Convertit une clé publique PEM en RSAPublicKey
   static RSAPublicKey publicKeyFromPem(String pem) {
-    final jsonString = utf8.decode(base64.decode(pem));
-    final Map<String, dynamic> keyData = json.decode(jsonString);
-
-    return RSAPublicKey(
-      BigInt.parse(keyData['modulus']),
-      BigInt.parse(keyData['exponent']),
-    );
+    return CryptoUtils.rsaPublicKeyFromPem(pem);
   }
 
   /// Convertit une clé privée PEM en RSAPrivateKey
   static RSAPrivateKey privateKeyFromPem(String pem) {
-    final jsonString = utf8.decode(base64.decode(pem));
-    final Map<String, dynamic> keyData = json.decode(jsonString);
-
-    return RSAPrivateKey(
-      BigInt.parse(keyData['modulus']),
-      BigInt.parse(keyData['privateExponent']),
-      BigInt.parse(keyData['p']),
-      BigInt.parse(keyData['q']),
-    );
+    return CryptoUtils.rsaPrivateKeyFromPem(pem);
   }
 
-  /// Chiffre un message avec une clé publique RSA
-  static String encrypt(String plainText, RSAPublicKey publicKey) {
-    final cipher = OAEPEncoding(RSAEngine())
-      ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
-
-    final plainBytes = Uint8List.fromList(utf8.encode(plainText));
-    final encryptedBytes = cipher.process(plainBytes);
-
-    return base64.encode(encryptedBytes);
+  /// Convertit une clé publique RSA en format PEM
+  static String publicKeyToPem(RSAPublicKey publicKey) {
+    return CryptoUtils.encodeRSAPublicKeyToPem(publicKey);
   }
 
-  /// Déchiffre un message avec une clé privée RSA
-  static String decrypt(String cipherText, RSAPrivateKey privateKey) {
-    final cipher = OAEPEncoding(RSAEngine())
-      ..init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
-
-    final cipherBytes = base64.decode(cipherText);
-    final decryptedBytes = cipher.process(Uint8List.fromList(cipherBytes));
-
-    return utf8.decode(decryptedBytes);
+  /// Convertit une clé privée RSA en format PEM
+  static String privateKeyToPem(RSAPrivateKey privateKey) {
+    return CryptoUtils.encodeRSAPrivateKeyToPem(privateKey);
   }
 }
 

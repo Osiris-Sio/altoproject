@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:convert';
 
-/// Widget affichant un QR Code de pairing (version minimaliste)
+/// Widget de QR Code de pairing
 class QRCodeDisplay extends StatelessWidget {
   final String relationCode;
   final String publicKey;

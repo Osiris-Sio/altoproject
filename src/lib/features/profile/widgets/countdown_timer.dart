@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Widget affichant un compte à rebours avec icône
+/// Widget de compte à rebours
 class CountdownTimer extends StatelessWidget {
   final int remainingSeconds;
   final bool isExpired;
@@ -59,7 +59,7 @@ class CountdownTimer extends StatelessWidget {
   }
 }
 
-/// Widget de barre de progression circulaire pour le timer
+/// Widget de barre de progression
 class CircularCountdownTimer extends StatelessWidget {
   final int remainingSeconds;
   final int totalSeconds;
