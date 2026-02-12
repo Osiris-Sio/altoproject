@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../notifiers/profile_notifier.dart';
 import '../widgets/qr_code_display.dart';
-import '../../../services/secure_storage_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,12 +11,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _userName = 'Utilisateur';
-
   @override
   void initState() {
     super.initState();
-    _loadUserData();
 
     // Initialiser le pairing automatiquement
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -25,20 +21,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  Future<void> _loadUserData() async {
-    final firstName = await SecureStorageService.getFirstName();
-    if (firstName != null && mounted) {
-      setState(() {
-        _userName = firstName;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_userName),
+        title: const Text('Test QR Code'),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),

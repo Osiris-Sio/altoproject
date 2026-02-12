@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/pairing_relation.dart';
-import '../../../services/pairing_api_service.dart';
-import '../../../services/secure_storage_service.dart';
 
 class ProfileNotifier extends ChangeNotifier {
   PairingRelation? _currentPairing;
@@ -47,11 +45,8 @@ class ProfileNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Récupérer la clé publique de l'utilisateur
-      final publicKey = await SecureStorageService.getPublicKey();
-      if (publicKey == null) {
-        throw Exception('Clé publique non trouvée. Créez d\'abord un compte.');
-      }
+      // Utiliser une clé publique fictive pour les tests
+      const publicKey = 'TEST_PUBLIC_KEY_FOR_QR_CODE_DEMO';
 
       // Générer un relationCode unique
       final relationCode = const Uuid().v4().substring(0, 8).toUpperCase();
@@ -157,12 +152,6 @@ class ProfileNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Callback appelé quand le pairing est matché
-  void _onPairingMatched() {
-    // Cette méthode peut être utilisée pour naviguer vers un autre écran
-    // ou pour déclencher une finalisation automatique
-    debugPrint('Pairing matché avec succès !');
-  }
 
   /// Réinitialise le pairing (nouveau QR Code)
   Future<void> resetPairing() async {
