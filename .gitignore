@@ -2,6 +2,10 @@
 *.key
 *.pem
 
+# IDE
+.idea/
+*.iml
+
 # Miscellaneous
 *.class
 *.lock
