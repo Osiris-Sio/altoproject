@@ -2,10 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:altoproject/core/config/app_config.dart';
 import '../models/pairing_data.dart';
-import '../services/crypto_service.dart';
-import '../services/database_service.dart';
-import '../services/key_storage.dart';
-import '../services/pairing_api_service.dart';
+import 'package:altoproject/services/crypto_service.dart';
+import 'package:altoproject/services/database_service.dart';
+import 'package:altoproject/services/key_storage.dart';
+import 'package:altoproject/services/pairing_api_service.dart';
 import '../notifiers/add_user_notifier.dart';
 
 /// Provider pour le service d'API de pairing

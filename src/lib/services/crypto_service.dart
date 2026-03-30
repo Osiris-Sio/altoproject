@@ -4,33 +4,29 @@ import 'dart:convert';
 import 'package:pointycastle/export.dart';
 import 'package:basic_utils/basic_utils.dart';
 
+/// Service de cryptographie RSA — source unique de vérité.
+///
+/// Utilisé pour :
+/// - générer des paires de clés RSA (pairing)
+/// - chiffrer les messages sortants (avec la clé publique du contact)
+/// - déchiffrer les messages entrants (avec sa propre clé privée)
 class CryptoService {
-  /// Génère un SecureRandom pour la génération de clés
-  static SecureRandom _getSecureRandom() {
-    final secureRandom = FortunaRandom();
-    final random = Random.secure();
-    final seeds = <int>[];
-    for (int i = 0; i < 32; i++) {
-      seeds.add(random.nextInt(256));
-    }
-    secureRandom.seed(KeyParameter(Uint8List.fromList(seeds)));
-    return secureRandom;
-  }
+  // ── Génération de clés ───────────────────────────────────────────────────
 
-  /// Génère une paire de clés RSA 2048 bits
-  /// Retourne les clés au format PEM standard
-  static Future<({String publicKeyPem, String privateKeyPem})> generateRSAKeyPair({
+  /// Génère une paire de clés RSA 2048 bits (synchrone).
+  /// Retourne `(publicKeyPem, privateKeyPem)` au format PEM.
+  ({String publicKeyPem, String privateKeyPem}) generateRsaKeyPair({
     int bitLength = 2048,
-  }) async {
-    final keyGen = RSAKeyGenerator()
+  }) {
+    final generator = RSAKeyGenerator()
       ..init(
         ParametersWithRandom(
           RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64),
-          _getSecureRandom(),
+          _secureRandom(),
         ),
       );
 
-    final pair = keyGen.generateKeyPair();
+    final pair = generator.generateKeyPair();
     final publicKey = pair.publicKey as RSAPublicKey;
     final privateKey = pair.privateKey as RSAPrivateKey;
 
@@ -40,29 +36,30 @@ class CryptoService {
     );
   }
 
-  /// Chiffre un message avec une clé publique RSA (format PEM)
-  /// Retourne le résultat en Base64
-  static String encryptWithPublicKey({
+  // ── Chiffrement / Déchiffrement ──────────────────────────────────────────
+
+  /// Chiffre [plaintext] avec la clé publique PEM du destinataire.
+  /// Retourne le texte chiffré encodé en Base64.
+  String encryptWithPublicKey({
     required String recipientPublicKeyPem,
     required String plaintext,
   }) {
-    final RSAPublicKey publicKey = CryptoUtils.rsaPublicKeyFromPem(recipientPublicKeyPem);
-
+    final publicKey = CryptoUtils.rsaPublicKeyFromPem(recipientPublicKeyPem);
     final engine = OAEPEncoding(RSAEngine())
       ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
 
-    final ciphertextBytes = engine.process(Uint8List.fromList(utf8.encode(plaintext)));
+    final ciphertextBytes =
+        engine.process(Uint8List.fromList(utf8.encode(plaintext)));
     return base64Encode(ciphertextBytes);
   }
 
-  /// Déchiffre un message avec une clé privée RSA (format PEM)
-  /// Le message chiffré doit être en Base64
-  static String decryptWithPrivateKey({
+  /// Déchiffre [ciphertextB64] (Base64) avec sa propre clé privée PEM.
+  /// Retourne le texte en clair.
+  String decryptWithPrivateKey({
     required String myPrivateKeyPem,
     required String ciphertextB64,
   }) {
-    final RSAPrivateKey privateKey = CryptoUtils.rsaPrivateKeyFromPem(myPrivateKeyPem);
-
+    final privateKey = CryptoUtils.rsaPrivateKeyFromPem(myPrivateKeyPem);
     final engine = OAEPEncoding(RSAEngine())
       ..init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
 
@@ -70,24 +67,31 @@ class CryptoService {
     return utf8.decode(clearBytes);
   }
 
-  /// Convertit une clé publique PEM en RSAPublicKey
-  static RSAPublicKey publicKeyFromPem(String pem) {
-    return CryptoUtils.rsaPublicKeyFromPem(pem);
-  }
+  // ── Helpers PEM ──────────────────────────────────────────────────────────
 
-  /// Convertit une clé privée PEM en RSAPrivateKey
-  static RSAPrivateKey privateKeyFromPem(String pem) {
-    return CryptoUtils.rsaPrivateKeyFromPem(pem);
-  }
+  RSAPublicKey publicKeyFromPem(String pem) =>
+      CryptoUtils.rsaPublicKeyFromPem(pem);
 
-  /// Convertit une clé publique RSA en format PEM
-  static String publicKeyToPem(RSAPublicKey publicKey) {
-    return CryptoUtils.encodeRSAPublicKeyToPem(publicKey);
-  }
+  RSAPrivateKey privateKeyFromPem(String pem) =>
+      CryptoUtils.rsaPrivateKeyFromPem(pem);
 
-  /// Convertit une clé privée RSA en format PEM
-  static String privateKeyToPem(RSAPrivateKey privateKey) {
-    return CryptoUtils.encodeRSAPrivateKeyToPem(privateKey);
+  String publicKeyToPem(RSAPublicKey publicKey) =>
+      CryptoUtils.encodeRSAPublicKeyToPem(publicKey);
+
+  String privateKeyToPem(RSAPrivateKey privateKey) =>
+      CryptoUtils.encodeRSAPrivateKeyToPem(privateKey);
+
+  // ── Interne ──────────────────────────────────────────────────────────────
+
+  FortunaRandom _secureRandom() {
+    final random = FortunaRandom();
+    final seed = Uint8List(32);
+    final r = Random.secure();
+    for (var i = 0; i < seed.length; i++) {
+      seed[i] = r.nextInt(256);
+    }
+    random.seed(KeyParameter(seed));
+    return random;
   }
 }
 

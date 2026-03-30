@@ -11,12 +11,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:altoproject/main.dart';
 
 void main() {
-  testWidgets('Alto app smoke test - affiche le bouton Ajouter un contact', (WidgetTester tester) async {
+  testWidgets('Alto smoke test — affiche UserPage quand pas de profil', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MyApp()),
+      const ProviderScope(child: MyApp(hasProfile: false)),
     );
+    await tester.pump();
 
-    expect(find.text('Alto'), findsOneWidget);
-    expect(find.text('Ajouter un contact'), findsOneWidget);
+    // UserPage doit afficher le bouton de création de compte
+    expect(find.text('Créer son compte'), findsOneWidget);
   });
 }

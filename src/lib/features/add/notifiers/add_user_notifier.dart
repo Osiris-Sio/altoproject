@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../models/contact.dart';
+import 'package:altoproject/core/models/contact.dart';
 import '../models/pairing_data.dart';
-import '../services/crypto_service.dart';
-import '../services/database_service.dart';
-import '../services/key_storage.dart';
-import '../services/pairing_api_service.dart';
+import 'package:altoproject/services/crypto_service.dart';
+import 'package:altoproject/services/database_service.dart';
+import 'package:altoproject/services/key_storage.dart';
+import 'package:altoproject/services/pairing_api_service.dart';
 
 /// Notifier pour gérer l'ajout d'un utilisateur
 class AddUserNotifier extends StateNotifier<PairingState> {
@@ -71,10 +71,15 @@ class AddUserNotifier extends StateNotifier<PairingState> {
       _myRelationCode = const Uuid().v4();
 
       // Match avec le serveur
-      final partnerData = await _apiService.matchPairing(
+      final partnerResult = await _apiService.matchPairing(
         relationCodeA: scannedRelationCode,
         relationCodeB: _myRelationCode!,
         publicKeyB: _myPublicKey!,
+      );
+      // Convertir PairingPartnerData → PairingData (même structure)
+      final partnerData = PairingData(
+        relationCode: partnerResult.relationCode,
+        publicKey: partnerResult.publicKey,
       );
 
       // Sauvegarde temporaire des données du partenaire
@@ -119,7 +124,11 @@ class AddUserNotifier extends StateNotifier<PairingState> {
   Future<void> _finalizeAsInitiator(String myRelationCode) async {
     try {
       // Récupération des infos du partenaire
-      final partnerData = await _apiService.finalizePairing(myRelationCode);
+      final partnerResult = await _apiService.finalizePairing(myRelationCode);
+      final partnerData = PairingData(
+        relationCode: partnerResult.relationCode,
+        publicKey: partnerResult.publicKey,
+      );
 
       // Sauvegarde de mes clés
       await _keyStorage.saveKeyPair(

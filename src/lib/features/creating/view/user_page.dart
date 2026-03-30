@@ -1,4 +1,5 @@
 import 'package:altoproject/features/creating/providers/user_provider.dart';
+import 'package:altoproject/features/home/view/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,38 +30,29 @@ class _UserPageState extends ConsumerState<UserPage> {
     super.dispose();
   }
 
-  void _onConfirmPressed() {
-    if (_firstNameCtrl.text.isNotEmpty && _lastNameCtrl.text.isNotEmpty) {
-      // On appelle le notifier pour sauvegarder
-      ref.read(userProvider.notifier).setNames(
-        _firstNameCtrl.text,
-        _lastNameCtrl.text,
-      );
+  Future<void> _onConfirmPressed() async {
+    final firstName = _firstNameCtrl.text.trim();
+    final lastName = _lastNameCtrl.text.trim();
 
+    if (firstName.isEmpty || lastName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Données sauvegardées !')),
+        const SnackBar(content: Text('Veuillez remplir tous les champs.')),
+      );
+      return;
+    }
+
+    // Sauvegarder le profil
+    await ref.read(userProvider.notifier).setNames(firstName, lastName);
+
+    // Naviguer vers l'écran principal (remplacement complet de la pile)
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainScaffold()),
       );
     }
   }
 
-  /*
-  void _adjustKg(double offset) {
-    double current = double.tryParse(_txtKgCtrl.text) ?? 0;
-    _txtKgCtrl.text = (current + offset).toString();
-  }
-
-  void _adjustCm(double offset) {
-    double current = double.tryParse(_txtCmCtrl.text) ?? 0;
-    _txtCmCtrl.text = (current + offset).toString();
-  }
-
-  void _reset() {
-    ref.read(bodyMetricsProvider.notifier).reset();
-    final resetState = ref.read(bodyMetricsProvider);
-    _txtKgCtrl.text = resetState.kg.toString();
-    _txtCmCtrl.text = resetState.cm.toString();
-  }
-*/
   @override
   Widget build(BuildContext context) {
     // On écoute le provider pour l'utilisateur :
@@ -86,12 +78,12 @@ class _UserPageState extends ConsumerState<UserPage> {
               ),
               TextField(
                 controller: _lastNameCtrl,
-                decoration: const InputDecoration(labelText: 'NOM de famille'),
+                decoration: const InputDecoration(labelText: 'Nom de famille'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _onConfirmPressed,
-                child: const Text('Confirmer'),
+                child: const Text('Créer son compte'),
               ),
             ],
           );

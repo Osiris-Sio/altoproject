@@ -1,27 +1,16 @@
-/// Configuration de l'application Alto
+/// Configuration centralisée de l'application Alto.
+/// C'est ici l'unique endroit où modifier l'URL du backend.
 class AppConfig {
-  // URL du backend de pairing
-  // IMPORTANT : Modifiez cette URL selon votre environnement
-  static const String pairingApiBaseUrl = 'http://localhost:8080';
+  // ── Backend ──────────────────────────────────────────────────────────────
+  static const String pairingApiBaseUrl = 'https://alto.samyn.ovh';
 
-  // Pour tester sur un appareil physique avec un émulateur :
-  // Android : utilisez l'IP de votre machine (ex: 'http://192.168.1.100:8080')
-  // iOS : utilisez l'IP de votre machine (ex: 'http://192.168.1.100:8080')
-
-  // Pour deux émulateurs Android :
-  // static const String pairingApiBaseUrl = 'http://10.0.2.2:8080';
-
-  // Paramètres de polling
+  // ── Polling ───────────────────────────────────────────────────────────────
   static const Duration pollingInterval = Duration(seconds: 2);
 
-  // Paramètres de cryptographie
+  // ── Cryptographie ─────────────────────────────────────────────────────────
   static const int rsaKeyBitLength = 2048;
 
-  // Timeout du pairing (côté client)
+  // ── Pairing ───────────────────────────────────────────────────────────────
+  /// Durée de validité d'un pairing avant expiration côté client.
   static const Duration pairingTimeout = Duration(minutes: 2);
-
-  // Configuration de la base de données
-  static const String databaseName = 'alto.db';
-  static const int databaseVersion = 1;
 }
-

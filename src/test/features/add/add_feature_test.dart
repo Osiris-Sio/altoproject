@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:altoproject/features/add/models/contact.dart';
 import 'package:altoproject/features/add/models/pairing_data.dart';
-import 'package:altoproject/features/add/services/crypto_service.dart';
+import 'package:altoproject/services/crypto_service.dart';
 
 void main() {
   group('Contact Model Tests', () {
@@ -24,7 +24,7 @@ void main() {
       expect(contactFromJson.createdAt, contact.createdAt);
     });
 
-    test('Contact toMap and fromMap should work correctly', () {
+    test('Contact toJson and fromJson (via toMap alias) should work correctly', () {
       final contact = Contact(
         id: 'test-id',
         name: 'Test User',
@@ -33,8 +33,8 @@ void main() {
         createdAt: DateTime.parse('2026-03-05T10:00:00Z'),
       );
 
-      final map = contact.toMap();
-      final contactFromMap = Contact.fromMap(map);
+      final map = contact.toJson();
+      final contactFromMap = Contact.fromJson(map);
 
       expect(contactFromMap.id, contact.id);
       expect(contactFromMap.name, contact.name);
