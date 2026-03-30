@@ -34,10 +34,8 @@ This guide will help you set up and run the Flutter application in development m
 1.  **Clone the repository**:
 
     ```bash
-    git clone https://github.com/your-user/altoproject.git
+    https://github.com/Osiris-Sio/altoproject.git
     ```
-
-    (Replace `your-user` with the actual GitHub user of the project)
 
 2.  **Navigate to the Flutter project directory**:
 
