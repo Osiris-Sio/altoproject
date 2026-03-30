@@ -27,7 +27,7 @@ void main() {
 
     test('Chiffrement et déchiffrement d\'un message court', () async {
       // Générer deux paires de clés (Alice et Bob)
-      final aliceKeys = await CryptoService.generateRSAKeyPair();
+      //final aliceKeys = await CryptoService.generateRSAKeyPair();
       final bobKeys = await CryptoService.generateRSAKeyPair();
 
       // Alice envoie un message à Bob

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/contact.dart';
+import '../../message/view/message_page.dart';
 
 class ContactTile extends StatelessWidget {
   final Contact contact;
@@ -19,7 +20,12 @@ class ContactTile extends StatelessWidget {
         ],
       ),
       onTap: () {
-        print("Aller vers la discussion avec ${contact.name}");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MessagePage(contactName: contact.name),
+          ),
+        );
       },
     );
   }
