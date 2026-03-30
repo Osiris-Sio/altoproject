@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -13,42 +14,40 @@ class ScanPairingScreen extends ConsumerStatefulWidget {
 }
 
 class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
-  MobileScannerController cameraController = MobileScannerController();
+  MobileScannerController? cameraController;
   bool _isProcessing = false;
+
+  // Champ de saisie manuelle pour le fallback web
+  final TextEditingController _manualCodeCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) {
+      cameraController = MobileScannerController();
+    }
+  }
 
   @override
   void dispose() {
-    cameraController.dispose();
+    cameraController?.dispose();
+    _manualCodeCtrl.dispose();
     super.dispose();
   }
 
-  void _handleBarcode(BarcodeCapture capture) async {
-    if (_isProcessing) return;
-
-    final List<Barcode> barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
-
-    final String? code = barcodes.first.rawValue;
-    if (code == null) return;
-
-    setState(() {
-      _isProcessing = true;
-    });
+  Future<void> _processCode(String code) async {
+    if (_isProcessing || code.trim().isEmpty) return;
+    setState(() => _isProcessing = true);
 
     try {
-      // Le QR code contient le relationCode
-      final relationCode = code;
+      await ref
+          .read(addUserNotifierProvider.notifier)
+          .handleScannedQrCode(code.trim());
 
-      // Traitement du QR code scanné
-      await ref.read(addUserNotifierProvider.notifier).handleScannedQrCode(relationCode);
-
-      // Navigation vers l'écran de confirmation
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => const AddConfirmScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const AddConfirmScreen()),
         );
       }
     } catch (e) {
@@ -59,15 +58,92 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
             backgroundColor: Colors.red,
           ),
         );
-        setState(() {
-          _isProcessing = false;
-        });
+        setState(() => _isProcessing = false);
       }
     }
   }
 
+  void _handleBarcode(BarcodeCapture capture) {
+    final barcodes = capture.barcodes;
+    if (barcodes.isEmpty) return;
+    final code = barcodes.first.rawValue;
+    if (code == null) return;
+    _processCode(code);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ── Fallback Web / Safari : saisie manuelle du code ──────────────────
+    if (kIsWeb) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFE6D5F5),
+        appBar: AppBar(
+          title: const Text('Entrer le code de pairing'),
+          backgroundColor: const Color(0xFFE6D5F5),
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.qr_code, size: 80, color: Color(0xFF6B4FA0)),
+                const SizedBox(height: 24),
+                const Text(
+                  'La caméra n\'est pas disponible sur le web.\nSaisissez le code de pairing manuellement.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _manualCodeCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Code de pairing',
+                    hintText: 'Ex: abc-123-...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    prefixIcon:
+                        const Icon(Icons.key, color: Color(0xFF6B4FA0)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _processCode(_manualCodeCtrl.text),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6B4FA0),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: _isProcessing
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text('Confirmer',
+                            style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ── Écran caméra (Android / iOS) ─────────────────────────────────────
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -77,26 +153,21 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
       ),
       body: Stack(
         children: [
-          // Caméra
           MobileScanner(
             controller: cameraController,
             onDetect: _handleBarcode,
           ),
-
-          // Overlay avec zone de scan
           CustomPaint(
             painter: ScannerOverlay(),
             child: Container(),
           ),
-
-          // Instructions
           Positioned(
             bottom: 100,
             left: 0,
             right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              child: const Text(
+            child: const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
                 'Placez le QR code dans le cadre',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -107,23 +178,17 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
               ),
             ),
           ),
-
-          // Indicateur de chargement
           if (_isProcessing)
             Container(
               color: Colors.black54,
               child: const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                ),
+                child: CircularProgressIndicator(color: Colors.white),
               ),
             ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
+        onPressed: () => Navigator.pop(context),
         backgroundColor: const Color(0xFF6B4FA0),
         child: const Icon(Icons.close, color: Colors.white),
       ),
@@ -132,89 +197,55 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
   }
 }
 
-/// Overlay pour la zone de scan
+/// Overlay graphique avec un cadre de scan au centre
 class ScannerOverlay extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.5);
-
+    final paint = Paint()..color = Colors.black.withValues(alpha: 0.5);
     final scanArea = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
       width: 250,
       height: 250,
     );
 
-    // Dessine l'overlay sombre avec un trou au centre
     canvas.drawPath(
       Path()
         ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-        ..addRRect(RRect.fromRectAndRadius(scanArea, const Radius.circular(20)))
+        ..addRRect(
+            RRect.fromRectAndRadius(scanArea, const Radius.circular(20)))
         ..fillType = PathFillType.evenOdd,
       paint,
     );
 
-    // Dessine les coins du cadre
     final cornerPaint = Paint()
       ..color = const Color(0xFF6B4FA0)
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
 
-    final cornerLength = 30.0;
-
+    const d = 30.0;
     // Coin supérieur gauche
-    canvas.drawLine(
-      Offset(scanArea.left, scanArea.top),
-      Offset(scanArea.left + cornerLength, scanArea.top),
-      cornerPaint,
-    );
-    canvas.drawLine(
-      Offset(scanArea.left, scanArea.top),
-      Offset(scanArea.left, scanArea.top + cornerLength),
-      cornerPaint,
-    );
-
+    canvas.drawLine(Offset(scanArea.left, scanArea.top),
+        Offset(scanArea.left + d, scanArea.top), cornerPaint);
+    canvas.drawLine(Offset(scanArea.left, scanArea.top),
+        Offset(scanArea.left, scanArea.top + d), cornerPaint);
     // Coin supérieur droit
-    canvas.drawLine(
-      Offset(scanArea.right, scanArea.top),
-      Offset(scanArea.right - cornerLength, scanArea.top),
-      cornerPaint,
-    );
-    canvas.drawLine(
-      Offset(scanArea.right, scanArea.top),
-      Offset(scanArea.right, scanArea.top + cornerLength),
-      cornerPaint,
-    );
-
+    canvas.drawLine(Offset(scanArea.right, scanArea.top),
+        Offset(scanArea.right - d, scanArea.top), cornerPaint);
+    canvas.drawLine(Offset(scanArea.right, scanArea.top),
+        Offset(scanArea.right, scanArea.top + d), cornerPaint);
     // Coin inférieur gauche
-    canvas.drawLine(
-      Offset(scanArea.left, scanArea.bottom),
-      Offset(scanArea.left + cornerLength, scanArea.bottom),
-      cornerPaint,
-    );
-    canvas.drawLine(
-      Offset(scanArea.left, scanArea.bottom),
-      Offset(scanArea.left, scanArea.bottom - cornerLength),
-      cornerPaint,
-    );
-
+    canvas.drawLine(Offset(scanArea.left, scanArea.bottom),
+        Offset(scanArea.left + d, scanArea.bottom), cornerPaint);
+    canvas.drawLine(Offset(scanArea.left, scanArea.bottom),
+        Offset(scanArea.left, scanArea.bottom - d), cornerPaint);
     // Coin inférieur droit
-    canvas.drawLine(
-      Offset(scanArea.right, scanArea.bottom),
-      Offset(scanArea.right - cornerLength, scanArea.bottom),
-      cornerPaint,
-    );
-    canvas.drawLine(
-      Offset(scanArea.right, scanArea.bottom),
-      Offset(scanArea.right, scanArea.bottom - cornerLength),
-      cornerPaint,
-    );
+    canvas.drawLine(Offset(scanArea.right, scanArea.bottom),
+        Offset(scanArea.right - d, scanArea.bottom), cornerPaint);
+    canvas.drawLine(Offset(scanArea.right, scanArea.bottom),
+        Offset(scanArea.right, scanArea.bottom - d), cornerPaint);
   }
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
-
-
-
 

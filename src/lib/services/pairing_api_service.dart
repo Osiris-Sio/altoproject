@@ -4,8 +4,7 @@ import '../features/profile/models/pairing_relation.dart';
 
 /// Service de gestion des appels API de pairing
 class PairingApiService {
-  // TODO: Remplacer par l'URL réelle de votre backend
-  static const String baseUrl = 'https://your-api-url.com';
+  static const String baseUrl = 'https://alto.samyn.ovh';
 
   /// Initialise un nouveau pairing
   /// POST /pairing
