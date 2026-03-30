@@ -34,10 +34,8 @@ Ce guide vous aidera à configurer et à exécuter l'application Flutter en mode
 1.  **Cloner le dépôt**:
 
     ```bash
-    git clone https://github.com/votre-utilisateur/altoproject.git
+    https://github.com/Osiris-Sio/altoproject.git
     ```
-
-    (Remplacez `votre-utilisateur` par l'utilisateur GitHub réel du projet)
 
 2.  **Naviguer vers le dossier du projet Flutter**:
 
