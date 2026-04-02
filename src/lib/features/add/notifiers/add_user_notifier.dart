@@ -20,6 +20,9 @@ class AddUserNotifier extends StateNotifier<PairingState> {
   String? _myPublicKey;
   String? _myPrivateKey;
 
+  /// Nombre max de cycles de polling (2 s × 60 = 2 min)
+  static const _maxPollingCycles = 60;
+
   AddUserNotifier({
     required PairingApiService apiService,
     required CryptoService cryptoService,
@@ -106,16 +109,23 @@ class AddUserNotifier extends StateNotifier<PairingState> {
   /// Démarre le polling pour détecter le match (côté initiateur)
   void _startPolling(String relationCode) {
     _pollingTimer?.cancel();
+    int cycles = 0;
+
     _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      cycles++;
+      if (cycles >= _maxPollingCycles) {
+        timer.cancel();
+        state = PairingState.timeout();
+        return;
+      }
       try {
         final status = await _apiService.getPairingStatus(relationCode);
-
         if (status == 'completed') {
           timer.cancel();
           await _finalizeAsInitiator(relationCode);
         }
       } catch (e) {
-        // Ignore les erreurs de polling
+        // Ignore les erreurs de polling temporaires
       }
     });
   }
@@ -151,16 +161,23 @@ class AddUserNotifier extends StateNotifier<PairingState> {
   /// Démarre le polling pour détecter la finalisation (côté scanner)
   void _startPollingForFinalization(String partnerRelationCode) {
     _pollingTimer?.cancel();
+    int cycles = 0;
+
     _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      cycles++;
+      if (cycles >= _maxPollingCycles) {
+        timer.cancel();
+        state = PairingState.timeout();
+        return;
+      }
       try {
         final status = await _apiService.getPairingStatus(partnerRelationCode);
-
         if (status == 'finalized') {
           timer.cancel();
           state = state.copyWith(status: PairingStatus.finalized);
         }
       } catch (e) {
-        // Ignore les erreurs de polling
+        // Ignore les erreurs de polling temporaires
       }
     });
   }

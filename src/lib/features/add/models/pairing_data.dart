@@ -29,6 +29,7 @@ enum PairingStatus {
   completed,
   finalized,
   error,
+  timeout, // polling expiré après 2 min
 }
 
 /// Modèle représentant l'état du pairing
@@ -45,6 +46,13 @@ class PairingState {
 
   factory PairingState.initial() {
     return PairingState(status: PairingStatus.waiting);
+  }
+
+  factory PairingState.timeout() {
+    return PairingState(
+      status: PairingStatus.timeout,
+      errorMessage: 'Le délai de 2 minutes a expiré. Veuillez régénérer le code.',
+    );
   }
 
   factory PairingState.error(String message) {

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../contact/view/contact_page.dart';
 import '../../settings/view/settings_page.dart';
 import '../../add/view/scan_pairing_screen.dart';
-import '../../profile/view/profile_screen.dart';
-import '../../profile/notifiers/profile_notifier.dart';
+import '../../add/view/show_qr_screen.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -80,10 +78,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ChangeNotifierProvider(
-                        create: (_) => ProfileNotifier(),
-                        child: const ProfileScreen(),
-                      ),
+                      builder: (_) => const ShowQrScreen(),
                     ),
                   );
                 },
