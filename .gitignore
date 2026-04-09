@@ -2,6 +2,10 @@
 *.key
 *.pem
 
+# IDE
+.idea/
+*.iml
+
 # Miscellaneous
 *.class
 *.lock
@@ -10,7 +14,7 @@
 *.swp
 .buildlog/
 .history
-
+.idea/
 
 
 # Flutter repo-specific

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Dossier cache interne (/data/data/<app>/cache) — utilisé pour le téléchargement de l'APK -->
+    <cache-path name="cache" path="." />
+    <!-- Dossier cache externe — fallback -->
+    <external-cache-path name="external_cache" path="." />
+</paths>
+
