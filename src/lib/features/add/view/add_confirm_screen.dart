@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:altoproject/core/config/app_colors.dart';
+import 'package:altoproject/core/widgets/alto_loading_overlay.dart';
 import 'package:altoproject/features/add/providers/add_providers.dart';
 import 'package:altoproject/features/add/models/pairing_data.dart';
 import 'package:altoproject/features/contact/providers/contacts_provider.dart';
@@ -76,103 +78,109 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
     final pairingState = ref.watch(addUserNotifierProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEDE6F5),
+      backgroundColor: AppColors.backgroundMedium,
       appBar: AppBar(
         title: const Text('Confirmer l\'ajout'),
-        backgroundColor: const Color(0xFFEDE6F5),
+        backgroundColor: AppColors.backgroundMedium,
         elevation: 0,
-        foregroundColor: const Color(0xFF2D1B4E),
+        foregroundColor: AppColors.dark,
         automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // ── Avatar ────────────────────────────────────────────────────
-              Container(
-                width: 90,
-                height: 90,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person_outline,
-                    size: 52, color: Color(0xFF6B4FA0)),
-              ),
-              const SizedBox(height: 24),
-
-              // ── État du pairing ───────────────────────────────────────────
-              _buildStatusWidget(pairingState),
-              const SizedBox(height: 24),
-
-              // ── Champ nom (visible uniquement si pairing OK) ──────────────
-              if (pairingState.status == PairingStatus.completed ||
-                  pairingState.status == PairingStatus.finalized) ...[
-                _buildPartnerInfo(pairingState),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: _nameController,
-                  enabled: !_isSaving,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(
-                    hintText: 'Nom du contact',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // ── Avatar ────────────────────────────────────────────────
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
                     ),
-                    prefixIcon: const Icon(Icons.person,
-                        color: Color(0xFF6B4FA0)),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
+                    child: const Icon(Icons.person_outline,
+                        size: 52, color: AppColors.primary),
                   ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _saveContact,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6B4FA0),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFFAA90CC),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  const SizedBox(height: 24),
+
+                  // ── État du pairing ───────────────────────────────────────
+                  _buildStatusWidget(pairingState),
+                  const SizedBox(height: 24),
+
+                  // ── Champ nom (visible uniquement si pairing OK) ──────────
+                  if (pairingState.status == PairingStatus.completed ||
+                      pairingState.status == PairingStatus.finalized) ...[
+                    _buildPartnerInfo(pairingState),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _nameController,
+                      enabled: !_isSaving,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: InputDecoration(
+                        hintText: 'Nom du contact',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: const Icon(Icons.person,
+                            color: AppColors.primary),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
                       ),
-                      elevation: 0,
                     ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.person_add_outlined),
-                              SizedBox(width: 10),
-                              Text('Ajouter ce contact',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600)),
-                            ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _saveContact,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: AppColors.disabled,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                  ),
-                ),
-              ],
+                          elevation: 0,
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.person_add_outlined),
+                                  SizedBox(width: 10),
+                                  Text('Ajouter ce contact',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ],
 
-              const SizedBox(height: 80),
-            ],
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
           ),
-        ),
+          if (_isSaving)
+            const AltoLoadingOverlay(message: 'Sauvegarde du contact…'),
+        ],
       ),
       // Bouton retour / annuler
       floatingActionButton: _isSaving
@@ -182,7 +190,7 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
                 ref.read(addUserNotifierProvider.notifier).cancel();
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
-              backgroundColor: const Color(0xFF6B4FA0),
+              backgroundColor: AppColors.primary,
               child: const Icon(Icons.arrow_back, color: Colors.white),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -195,10 +203,10 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
     switch (state.status) {
       case PairingStatus.waiting:
         return const Column(children: [
-          CircularProgressIndicator(color: Color(0xFF6B4FA0)),
+          CircularProgressIndicator(color: AppColors.primary),
           SizedBox(height: 14),
           Text('Connexion en cours…',
-              style: TextStyle(fontSize: 16, color: Color(0xFF6B4FA0))),
+              style: TextStyle(fontSize: 16, color: AppColors.primary)),
         ]);
 
       case PairingStatus.completed:
@@ -216,14 +224,14 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
         );
 
       case PairingStatus.timeout:
-        return Column(children: [
-          const _StatusBadge(
+        return const Column(children: [
+          _StatusBadge(
             icon: Icons.timer_off_outlined,
             color: Colors.orange,
             text: 'Délai expiré',
           ),
-          const SizedBox(height: 10),
-          const Text(
+          SizedBox(height: 10),
+          Text(
             'Le délai de 2 minutes s\'est écoulé.\nRetournez en arrière et réessayez.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey, fontSize: 13),
@@ -253,8 +261,7 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
     if (state.partnerData == null) return const SizedBox.shrink();
 
     final code = state.partnerData!.relationCode;
-    final shortCode =
-        code.length > 8 ? '${code.substring(0, 8)}…' : code;
+    final shortCode = code.length > 8 ? '${code.substring(0, 8)}…' : code;
 
     return Container(
       width: double.infinity,
@@ -270,7 +277,7 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
             'Informations du contact',
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: Color(0xFF6B4FA0),
+              color: AppColors.primary,
             ),
           ),
           const SizedBox(height: 10),
@@ -278,11 +285,10 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
             const Icon(Icons.key, size: 16, color: Colors.grey),
             const SizedBox(width: 8),
             Text('Code : $shortCode',
-                style:
-                    const TextStyle(fontSize: 13, color: Colors.black87)),
+                style: const TextStyle(fontSize: 13, color: Colors.black87)),
           ]),
           const SizedBox(height: 6),
-          Row(children: const [
+          const Row(children: [
             Icon(Icons.lock_outline, size: 16, color: Colors.grey),
             SizedBox(width: 8),
             Text('Clé publique reçue ✓',

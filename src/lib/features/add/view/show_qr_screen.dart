@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:altoproject/core/config/app_colors.dart';
+import 'package:altoproject/core/widgets/alto_loading_overlay.dart';
 import 'package:altoproject/features/add/providers/add_providers.dart';
 import 'package:altoproject/features/add/models/pairing_data.dart';
 import 'package:altoproject/features/add/view/add_confirm_screen.dart';
@@ -96,7 +98,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
   Color get _timerColor {
     if (_isExpired) return Colors.red;
     if (_remainingSeconds <= 30) return Colors.orange;
-    return const Color(0xFF6B4FA0);
+    return AppColors.primary;
   }
 
   double get _timerProgress =>
@@ -128,12 +130,12 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEDE6F5),
+      backgroundColor: AppColors.backgroundMedium,
       appBar: AppBar(
         title: const Text('Mon QR Code'),
-        backgroundColor: const Color(0xFFEDE6F5),
+        backgroundColor: AppColors.backgroundMedium,
         elevation: 0,
-        foregroundColor: const Color(0xFF2D1B4E),
+        foregroundColor: AppColors.dark,
       ),
       body: SafeArea(
         child: Center(
@@ -149,7 +151,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
           ref.read(addUserNotifierProvider.notifier).cancel();
           Navigator.pop(context);
         },
-        backgroundColor: const Color(0xFF6B4FA0),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.close, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -159,16 +161,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
   Widget _buildBody() {
     // ── Chargement ──────────────────────────────────────────────────────────
     if (_isLoading) {
-      return const Column(
-        children: [
-          CircularProgressIndicator(color: Color(0xFF6B4FA0)),
-          SizedBox(height: 20),
-          Text(
-            'Initialisation du pairing…',
-            style: TextStyle(fontSize: 16, color: Color(0xFF6B4FA0)),
-          ),
-        ],
-      );
+      return const AltoLoadingOverlay(message: 'Génération des clés et du QR code…');
     }
 
     // ── Erreur ──────────────────────────────────────────────────────────────
@@ -210,7 +203,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF2D1B4E),
+              color: AppColors.dark,
             ),
           ),
           const SizedBox(height: 8),
@@ -236,7 +229,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2D1B4E),
+            color: AppColors.dark,
           ),
         ),
         const SizedBox(height: 6),
@@ -290,7 +283,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFD4C5E8)),
+            border: Border.all(color: AppColors.muted),
           ),
           child: Text(
             _qrData!.length > 16
@@ -301,7 +294,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.5,
-              color: Color(0xFF6B4FA0),
+              color: AppColors.primary,
             ),
           ),
         ),
@@ -325,11 +318,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.access_time,
-                color: _timerColor,
-                size: 18,
-              ),
+              Icon(Icons.access_time, color: _timerColor, size: 18),
               const SizedBox(width: 8),
               Text(
                 'Expire dans $_formattedTime',
@@ -367,7 +356,7 @@ class _RegenerateButton extends StatelessWidget {
       icon: const Icon(Icons.refresh),
       label: const Text('Générer un nouveau code'),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF6B4FA0),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(
@@ -391,7 +380,7 @@ class _WaitingIndicator extends StatelessWidget {
           height: 16,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: const Color(0xFF6B4FA0).withValues(alpha: 0.6),
+            color: AppColors.primary.withValues(alpha: 0.6),
           ),
         ),
         const SizedBox(width: 10),
@@ -399,7 +388,7 @@ class _WaitingIndicator extends StatelessWidget {
           'En attente du scan…',
           style: TextStyle(
             fontSize: 14,
-            color: Color(0xFF6B4FA0),
+            color: AppColors.primary,
             fontWeight: FontWeight.w500,
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:altoproject/core/config/app_colors.dart';
 import 'package:altoproject/features/add/providers/add_providers.dart';
 import 'package:altoproject/features/add/view/add_confirm_screen.dart';
 
@@ -90,11 +91,12 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
     // ── Fallback Web / Safari : saisie manuelle du code ──────────────────
     if (kIsWeb) {
       return Scaffold(
-        backgroundColor: const Color(0xFFE6D5F5),
+        backgroundColor: AppColors.surface,
         appBar: AppBar(
           title: const Text('Entrer le code de pairing'),
-          backgroundColor: const Color(0xFFE6D5F5),
+          backgroundColor: AppColors.surface,
           elevation: 0,
+          foregroundColor: AppColors.dark,
         ),
         body: Center(
           child: Padding(
@@ -102,7 +104,7 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.qr_code, size: 80, color: Color(0xFF6B4FA0)),
+                const Icon(Icons.qr_code, size: 80, color: AppColors.primary),
                 const SizedBox(height: 24),
                 const Text(
                   'La caméra n\'est pas disponible sur le web.\nSaisissez le code de pairing manuellement.',
@@ -118,8 +120,7 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    prefixIcon:
-                        const Icon(Icons.key, color: Color(0xFF6B4FA0)),
+                    prefixIcon: const Icon(Icons.key, color: AppColors.primary),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -131,7 +132,7 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
                         ? null
                         : () => _processCode(_manualCodeCtrl.text),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6B4FA0),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -160,11 +161,12 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
     // ── Écran caméra (Android / iOS) ─────────────────────────────────────
     if (_cameraPermissionDenied) {
       return Scaffold(
-        backgroundColor: const Color(0xFFEDE6F5),
+        backgroundColor: AppColors.backgroundMedium,
         appBar: AppBar(
           title: const Text('Scanner le QR code'),
-          backgroundColor: const Color(0xFFEDE6F5),
+          backgroundColor: AppColors.backgroundMedium,
           elevation: 0,
+          foregroundColor: AppColors.dark,
         ),
         body: Center(
           child: Padding(
@@ -180,7 +182,7 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D1B4E)),
+                      color: AppColors.dark),
                 ),
                 const SizedBox(height: 12),
                 const Text(
@@ -194,7 +196,7 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
                   icon: const Icon(Icons.settings),
                   label: const Text('Ouvrir les paramètres'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6B4FA0),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
@@ -216,9 +218,11 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Scanner le QR code'),
+        title: const Text('Scanner le QR code',
+            style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Stack(
         children: [
@@ -230,11 +234,11 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
             painter: ScannerOverlay(),
             child: Container(),
           ),
-          Positioned(
+          const Positioned(
             bottom: 100,
             left: 0,
             right: 0,
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.all(20),
               child: Text(
                 'Placez le QR code dans le cadre',
@@ -258,7 +262,7 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pop(context),
-        backgroundColor: const Color(0xFF6B4FA0),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.close, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -287,7 +291,7 @@ class ScannerOverlay extends CustomPainter {
     );
 
     final cornerPaint = Paint()
-      ..color = const Color(0xFF6B4FA0)
+      ..color = AppColors.primary
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
 

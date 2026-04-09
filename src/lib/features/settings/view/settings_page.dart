@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:altoproject/core/config/app_colors.dart';
 import 'package:altoproject/core/providers/app_providers.dart';
 import 'package:altoproject/core/providers/theme_provider.dart';
 import 'package:altoproject/features/creating/models/user.dart';
@@ -66,7 +67,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B4FA0),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
@@ -217,7 +218,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           horizontal: 16, vertical: 4),
                       leading: const _SettingIcon(
                           icon: Icons.person_outline,
-                          color: Color(0xFF6B4FA0)),
+                          color: AppColors.primary),
                       title: const Text('Modifier le profil'),
                       subtitle: Text('${user.firstName} ${user.lastName}'),
                       trailing: const Icon(Icons.chevron_right),
@@ -250,12 +251,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [
-                          const _SettingIcon(
+                        const Row(children: [
+                          _SettingIcon(
                               icon: Icons.palette_outlined,
-                              color: Color(0xFF6B4FA0)),
-                          const SizedBox(width: 12),
-                          const Text('Thème de l\'application',
+                              color: AppColors.primary),
+                          SizedBox(width: 12),
+                          Text('Thème de l\'application',
                               style: TextStyle(
                                   fontSize: 15, fontWeight: FontWeight.w500)),
                         ]),
@@ -317,7 +318,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Color(0xFF6B4FA0),
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -381,7 +382,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF6B4FA0), Color(0xFF4A3070)],
+          colors: [AppColors.primary, AppColors.primaryDark],
         ),
       ),
       child: Column(
@@ -417,11 +418,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.lock_outline, size: 12, color: Color(0xFFD4C5E8)),
+              Icon(Icons.lock_outline, size: 12, color: AppColors.muted),
               SizedBox(width: 4),
               Text(
                 'Chiffrement de bout en bout',
-                style: TextStyle(fontSize: 12, color: Color(0xFFD4C5E8)),
+                style: TextStyle(fontSize: 12, color: AppColors.muted),
               ),
             ],
           ),
@@ -438,7 +439,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF6B4FA0),
+          color: AppColors.primary,
           letterSpacing: 0.8,
         ),
       ),
@@ -490,7 +491,7 @@ class _ThemeChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFF6B4FA0)
+              ? AppColors.primary
               : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -500,7 +501,7 @@ class _ThemeChip extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: selected ? Colors.white : const Color(0xFF6B4FA0),
+              color: selected ? Colors.white : AppColors.primary,
             ),
             const SizedBox(height: 4),
             Text(
@@ -508,7 +509,7 @@ class _ThemeChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: selected ? Colors.white : const Color(0xFF6B4FA0),
+                color: selected ? Colors.white : AppColors.primary,
               ),
             ),
           ],

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:altoproject/features/add/models/contact.dart';
+import 'package:altoproject/core/models/contact.dart';
 import 'package:altoproject/features/add/models/pairing_data.dart';
 import 'package:altoproject/services/crypto_service.dart';
 

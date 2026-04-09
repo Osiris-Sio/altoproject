@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:altoproject/core/config/app_colors.dart';
 import '../../contact/view/contact_page.dart';
 import '../../settings/view/settings_page.dart';
 import '../../add/view/scan_pairing_screen.dart';
@@ -14,7 +15,6 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
 
-  static const _titles = ['Alto Messages', 'Alto Messages - Paramètres'];
 
   // ── Bouton central "+" ───────────────────────────────────────────────────
 
@@ -44,11 +44,11 @@ class _MainScaffoldState extends State<MainScaffold> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE6D5F5),
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.qr_code_scanner,
-                      color: Color(0xFF6B4FA0)),
+                      color: AppColors.primary),
                 ),
                 title: const Text('Scanner un QR Code',
                     style: TextStyle(fontWeight: FontWeight.w500)),
@@ -66,10 +66,10 @@ class _MainScaffoldState extends State<MainScaffold> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE6D5F5),
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.qr_code, color: Color(0xFF6B4FA0)),
+                  child: const Icon(Icons.qr_code, color: AppColors.primary),
                 ),
                 title: const Text('Partager mon QR Code',
                     style: TextStyle(fontWeight: FontWeight.w500)),
@@ -96,12 +96,18 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titles[_currentIndex]),
-        actions: _currentIndex == 0
-            ? [IconButton(icon: const Icon(Icons.search), onPressed: () {})]
-            : null,
-      ),
+      appBar: _currentIndex == 0
+          ? AppBar(
+              title: const Text(
+                'Alto',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
+              ),
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.dark,
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+            )
+          : null,
       body: IndexedStack(
         index: _currentIndex,
         children: const [
@@ -189,8 +195,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        selected ? const Color(0xFF6B4FA0) : Colors.grey.shade500;
+    final color = selected ? AppColors.primary : Colors.grey.shade500;
 
     return InkWell(
       onTap: onTap,
@@ -229,7 +234,7 @@ class _AddButton extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: const BoxDecoration(
-          color: Color(0xFF6B4FA0),
+          color: AppColors.primary,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -244,4 +249,3 @@ class _AddButton extends StatelessWidget {
     );
   }
 }
-

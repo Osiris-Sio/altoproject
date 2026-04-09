@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:altoproject/core/config/app_colors.dart';
 import 'package:altoproject/core/models/contact.dart';
 import '../providers/message_providers.dart';
 import '../widgets/message_bubble.dart';
@@ -115,7 +116,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF2D1B4E),
+                color: AppColors.dark,
               ),
             ),
             const SizedBox(height: 12),
@@ -177,11 +178,11 @@ class _MessagePageState extends ConsumerState<MessagePage> {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4EFF9),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: _buildAppBar(state),
       body: Column(
         children: [
-          _EncryptionBanner(),
+          const _EncryptionBanner(),
           Expanded(child: _buildMessageList(state)),
           _buildInputBar(state),
         ],
@@ -195,18 +196,18 @@ class _MessagePageState extends ConsumerState<MessagePage> {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0.5,
-      leading: const BackButton(color: Color(0xFF6B4FA0)),
+      leading: const BackButton(color: AppColors.primary),
       title: Row(
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: const Color(0xFFE6D5F5),
+            backgroundColor: AppColors.surface,
             child: Text(
               widget.contact.name.isNotEmpty
                   ? widget.contact.name[0].toUpperCase()
                   : '?',
               style: const TextStyle(
-                color: Color(0xFF6B4FA0),
+                color: AppColors.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -222,7 +223,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF2D1B4E),
+                    color: AppColors.dark,
                   ),
                 ),
                 if (state.isRefreshing)
@@ -243,10 +244,10 @@ class _MessagePageState extends ConsumerState<MessagePage> {
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Color(0xFF6B4FA0),
+                    color: AppColors.primary,
                   ),
                 )
-              : const Icon(Icons.refresh, color: Color(0xFF6B4FA0)),
+              : const Icon(Icons.refresh, color: AppColors.primary),
           onPressed: state.isRefreshing ? null : _refresh,
           tooltip: 'Vérifier les nouveaux messages',
         ),
@@ -312,7 +313,7 @@ class _EmojiButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFF0EBF8),
+      color: AppColors.inputBackground,
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onPressed,
@@ -321,7 +322,7 @@ class _EmojiButton extends StatelessWidget {
           padding: EdgeInsets.all(10),
           child: Icon(
             Icons.emoji_emotions_outlined,
-            color: Color(0xFF6B4FA0),
+            color: AppColors.primary,
             size: 22,
           ),
         ),
@@ -366,7 +367,7 @@ class _MessageTextField extends StatelessWidget {
           ),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF0EBF8),
+            color: AppColors.inputBackground,
             borderRadius: BorderRadius.circular(24),
           ),
           child: TextField(
@@ -400,15 +401,15 @@ class _EncryptionBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 6),
-      color: const Color(0xFFEDE3F8),
+      color: AppColors.surfaceAccent,
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.lock, size: 12, color: Color(0xFF6B4FA0)),
+          Icon(Icons.lock, size: 12, color: AppColors.primary),
           SizedBox(width: 6),
           Text(
             'Chiffrement de bout en bout (RSA-2048)',
-            style: TextStyle(fontSize: 11, color: Color(0xFF6B4FA0)),
+            style: TextStyle(fontSize: 11, color: AppColors.primary),
           ),
         ],
       ),
@@ -433,7 +434,7 @@ class _EmptyConversation extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF2D1B4E),
+              color: AppColors.dark,
             ),
           ),
           const SizedBox(height: 8),
@@ -448,8 +449,8 @@ class _EmptyConversation extends StatelessWidget {
             icon: const Icon(Icons.refresh, size: 16),
             label: const Text('Vérifier les messages'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF6B4FA0),
-              side: const BorderSide(color: Color(0xFF6B4FA0)),
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
             ),
           ),
         ],
@@ -478,7 +479,7 @@ class _SendButton extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: enabled ? const Color(0xFF6B4FA0) : const Color(0xFFCCBCE8),
+          color: enabled ? AppColors.primary : AppColors.sendDisabled,
           shape: BoxShape.circle,
         ),
         child: isSending

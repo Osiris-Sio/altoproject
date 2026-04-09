@@ -35,7 +35,7 @@ final pairingApiServiceProvider = Provider<PairingApiService>((ref) {
 
 /// Service d'API échange d'éléments chiffrés
 final elementApiServiceProvider = Provider<ElementApiService>((ref) {
-  return ElementApiService(baseUrl: AppConfig.pairingApiBaseUrl);
+  return const ElementApiService(baseUrl: AppConfig.pairingApiBaseUrl);
 });
 
 /// Service de persistance locale des messages

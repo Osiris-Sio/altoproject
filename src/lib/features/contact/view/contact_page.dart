@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:altoproject/core/config/app_colors.dart';
+import 'package:altoproject/core/widgets/alto_error_display.dart';
 import '../widgets/contact_tile.dart';
 import '../providers/contacts_provider.dart';
 import '../../add/view/scan_pairing_screen.dart';
@@ -15,31 +17,18 @@ class ContactPage extends ConsumerWidget {
 
     return contactsAsync.when(
       loading: () => const Center(
-        child: CircularProgressIndicator(color: Color(0xFF6B4FA0)),
+        child: CircularProgressIndicator(color: AppColors.primary),
       ),
-      error: (e, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text('Erreur : $e',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.invalidate(contactsProvider),
-              child: const Text('Réessayer'),
-            ),
-          ],
-        ),
+      error: (e, _) => AltoErrorDisplay(
+        message: 'Impossible de charger les contacts.\n${e.toString()}',
+        onRetry: () => ref.invalidate(contactsProvider),
       ),
       data: (contacts) {
         if (contacts.isEmpty) {
           return _EmptyContactsView();
         }
         return RefreshIndicator(
-          color: const Color(0xFF6B4FA0),
+          color: AppColors.primary,
           onRefresh: () => ref.read(contactsProvider.notifier).refresh(),
           child: ListView.separated(
             itemCount: contacts.length,
@@ -72,7 +61,7 @@ class _EmptyContactsView extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D1B4E)),
+                      color: AppColors.dark),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -135,9 +124,9 @@ class _ShortcutButton extends StatelessWidget {
         icon: Icon(icon, size: 18),
         label: Text(label),
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF6B4FA0),
-          side: const BorderSide(color: Color(0xFFD4C5E8), width: 1.5),
-          backgroundColor: const Color(0xFFEDE3F8),
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.muted, width: 1.5),
+          backgroundColor: AppColors.surfaceAccent,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),

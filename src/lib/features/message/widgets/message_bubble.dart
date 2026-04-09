@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:altoproject/core/config/app_colors.dart';
 import '../models/message.dart';
 
 /// Bulle de message — s'aligne à droite (moi) ou à gauche (contact).
@@ -43,7 +44,7 @@ class MessageBubble extends StatelessWidget {
         ),
         padding: _paddingForContent(),
         decoration: BoxDecoration(
-          color: isMine ? const Color(0xFF6B4FA0) : Colors.white,
+          color: isMine ? AppColors.primary : Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),

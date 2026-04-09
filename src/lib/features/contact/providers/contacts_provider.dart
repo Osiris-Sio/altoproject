@@ -23,5 +23,24 @@ class ContactsNotifier extends AsyncNotifier<List<Contact>> {
       () => ref.read(databaseServiceProvider).getAllContacts(),
     );
   }
-}
 
+  /// Supprime un contact et nettoie toutes ses données (clés RSA, messages locaux).
+  Future<void> deleteContact(Contact contact) async {
+    try {
+      // 1. Supprimer les clés RSA de cette relation
+      await ref.read(keyStorageProvider).deleteKeyPair(contact.myRelationCode);
+      // 2. Supprimer l'historique local des messages
+      await ref
+          .read(messageStorageServiceProvider)
+          .clearMessages(contact.id);
+      // 3. Supprimer le contact de la base
+      await ref.read(databaseServiceProvider).deleteContact(contact.id);
+      // 4. Rafraîchir la liste
+      await refresh();
+    } catch (_) {
+      // En cas d'échec partiel, on rafraîchit quand même
+      await refresh();
+      rethrow;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/config/app_colors.dart';
 import 'core/providers/theme_provider.dart';
 import 'features/creating/view/user_page.dart';
 import 'features/home/view/main_scaffold.dart';
@@ -29,12 +30,12 @@ class MyApp extends ConsumerWidget {
       title: 'Alto',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6B4FA0)),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6B4FA0),
+          seedColor: AppColors.primary,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
