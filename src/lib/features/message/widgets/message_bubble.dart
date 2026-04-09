@@ -4,11 +4,29 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/message.dart';
 
 /// Bulle de message — s'aligne à droite (moi) ou à gauche (contact).
-/// Rendu adapté par type : MESSAGE, COLOR, ICON, URL.
+/// Rendu adapté par contenu : texte, URL cliquable, emoji en grand.
 class MessageBubble extends StatelessWidget {
   final Message message;
 
   const MessageBubble({super.key, required this.message});
+
+  // ── Détection automatique du contenu ─────────────────────────────────────
+
+  /// Vrai si [s] ressemble à une URL (commence par http/https, sans espace).
+  static bool _isUrl(String s) {
+    final t = s.trim();
+    return !t.contains(' ') &&
+        (t.startsWith('http://') || t.startsWith('https://')) &&
+        t.length > 7;
+  }
+
+  /// Vrai si [s] est uniquement composé d'emoji (pas de lettres/chiffres/espaces).
+  static bool _isEmojiOnly(String s) {
+    final t = s.trim();
+    if (t.isEmpty || t.contains(' ') || t.runes.length > 8) return false;
+    return !RegExp(r'[a-zA-Z0-9!@#$%^&*()\-+=\[\]{}|;:,<>./?\\`~_]')
+        .hasMatch(t);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +41,7 @@ class MessageBubble extends StatelessWidget {
           left: isMine ? 60 : 12,
           right: isMine ? 12 : 60,
         ),
-        padding: _paddingForType(),
+        padding: _paddingForContent(),
         decoration: BoxDecoration(
           color: isMine ? const Color(0xFF6B4FA0) : Colors.white,
           borderRadius: BorderRadius.only(
@@ -62,20 +80,28 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  EdgeInsets _paddingForType() {
-    if (message.type == 'ICON') {
+  EdgeInsets _paddingForContent() {
+    // Emoji seul → padding généreux
+    if (message.type == 'ICON' ||
+        (message.type == 'MESSAGE' && _isEmojiOnly(message.content))) {
       return const EdgeInsets.symmetric(horizontal: 16, vertical: 12);
-    }
-    if (message.type == 'COLOR') {
-      return const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
     }
     return const EdgeInsets.symmetric(horizontal: 14, vertical: 10);
   }
 
   Widget _buildContent(BuildContext context) {
     switch (message.type) {
-      // ── Texte ────────────────────────────────────────────────────────────
+      // ── Texte (avec auto-détection URL / emoji) ───────────────────────────
       case 'MESSAGE':
+        if (_isUrl(message.content)) {
+          return _buildUrlWidget(context, message.content);
+        }
+        if (_isEmojiOnly(message.content)) {
+          return Text(
+            message.content,
+            style: const TextStyle(fontSize: 48),
+          );
+        }
         return Text(
           message.content,
           style: TextStyle(
@@ -84,126 +110,18 @@ class MessageBubble extends StatelessWidget {
           ),
         );
 
-      // ── Couleur ──────────────────────────────────────────────────────────
-      case 'COLOR':
-        final hex = message.content.startsWith('#')
-            ? message.content
-            : '#${message.content}';
-        Color? color;
-        try {
-          color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
-        } catch (_) {}
-
-        return GestureDetector(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: hex));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$hex copié'),
-                duration: const Duration(seconds: 1),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (color != null)
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.5),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.4),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    hex.toUpperCase(),
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: message.isMine ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  Text(
-                    'Appuyer pour copier',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: message.isMine
-                          ? Colors.white.withValues(alpha: 0.6)
-                          : Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-
-      // ── Emoji ────────────────────────────────────────────────────────────
+      // ── Emoji (rétrocompatibilité) ────────────────────────────────────────
       case 'ICON':
         return Text(
           message.content,
           style: const TextStyle(fontSize: 48),
         );
 
-      // ── URL ──────────────────────────────────────────────────────────────
+      // ── URL (rétrocompatibilité) ──────────────────────────────────────────
       case 'URL':
-        final url = message.content;
-        return GestureDetector(
-          onTap: () async {
-            final uri = Uri.tryParse(url);
-            if (uri != null && await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.open_in_new,
-                size: 16,
-                color: message.isMine
-                    ? Colors.lightBlueAccent
-                    : Colors.blue.shade600,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  url,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: message.isMine
-                        ? Colors.lightBlueAccent
-                        : Colors.blue.shade700,
-                    decoration: TextDecoration.underline,
-                    decorationColor: message.isMine
-                        ? Colors.lightBlueAccent
-                        : Colors.blue.shade700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+        return _buildUrlWidget(context, message.content);
 
+      // ── Fallback (anciens types COLOR, etc.) ─────────────────────────────
       default:
         return Text(
           message.content,
@@ -213,6 +131,57 @@ class MessageBubble extends StatelessWidget {
           ),
         );
     }
+  }
+
+  /// Rendu d'un lien cliquable.
+  Widget _buildUrlWidget(BuildContext context, String url) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.tryParse(url);
+        if (uri != null && await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      onLongPress: () {
+        Clipboard.setData(ClipboardData(text: url));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lien copié'),
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.open_in_new,
+            size: 16,
+            color: message.isMine
+                ? Colors.lightBlueAccent
+                : Colors.blue.shade600,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              url,
+              style: TextStyle(
+                fontSize: 14,
+                color: message.isMine
+                    ? Colors.lightBlueAccent
+                    : Colors.blue.shade700,
+                decoration: TextDecoration.underline,
+                decorationColor: message.isMine
+                    ? Colors.lightBlueAccent
+                    : Colors.blue.shade700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _formatTime(DateTime dt) {

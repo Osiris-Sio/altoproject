@@ -1,32 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:altoproject/core/models/contact.dart';
-import '../notifiers/message_notifier.dart';
 import '../providers/message_providers.dart';
 import '../widgets/message_bubble.dart';
 
-// ── Types de messages disponibles ────────────────────────────────────────────
-
-enum _MsgType {
-  message(label: 'Texte', iconData: Icons.chat_bubble_outline, key: 'MESSAGE'),
-  color(label: 'Couleur', iconData: Icons.palette_outlined, key: 'COLOR'),
-  icon(label: 'Icône', iconData: Icons.emoji_emotions_outlined, key: 'ICON'),
-  url(label: 'Lien', iconData: Icons.link, key: 'URL');
-
-  const _MsgType({required this.label, required this.iconData, required this.key});
-  final String label;
-  final IconData iconData;
-  final String key;
-}
-
-// ── Emojis proposés dans le picker ───────────────────────────────────────────
+// ── Emojis disponibles dans le picker ────────────────────────────────────────
 
 const _kEmojis = [
-  '😀','😂','😍','🥺','😎','🤩','😴','🤔','😅','🙏',
-  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💕','💯',
-  '✨','🔥','💧','🎉','🎊','🌟','💪','👍','👎','🤝',
-  '🌸','🌈','🦋','🐶','🐱','🌺','🍕','🎵','🚀','⚡',
+  '😀', '😂', '😍', '🥺', '😎', '🤩', '😴', '🤔', '😅', '🙏',
+  '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💕', '💯',
+  '✨', '🔥', '💧', '🎉', '🎊', '🌟', '💪', '👍', '👎', '🤝',
+  '🌸', '🌈', '🦋', '🐶', '🐱', '🌺', '🍕', '🎵', '🚀', '⚡',
 ];
 
 // ── Écran de conversation ─────────────────────────────────────────────────────
@@ -41,40 +25,20 @@ class MessagePage extends ConsumerStatefulWidget {
 
 class _MessagePageState extends ConsumerState<MessagePage> {
   final TextEditingController _textCtrl = TextEditingController();
-  final TextEditingController _urlCtrl = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
-
-  _MsgType _selectedType = _MsgType.message;
-  Color _selectedColor = const Color(0xFF6B4FA0);
-  String? _selectedEmoji;
 
   @override
   void dispose() {
     _textCtrl.dispose();
-    _urlCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  String _colorToHex(Color c) =>
-      '#${c.red.toRadixString(16).padLeft(2, '0')}'
-      '${c.green.toRadixString(16).padLeft(2, '0')}'
-      '${c.blue.toRadixString(16).padLeft(2, '0')}'.toUpperCase();
-
   bool get _canSend {
-    switch (_selectedType) {
-      case _MsgType.message:
-        final l = _textCtrl.text.trim().length;
-        return l > 0 && l <= kMaxMessageLength;
-      case _MsgType.color:
-        return true;
-      case _MsgType.icon:
-        return _selectedEmoji != null;
-      case _MsgType.url:
-        return _urlCtrl.text.trim().isNotEmpty;
-    }
+    final l = _textCtrl.text.trim().length;
+    return l > 0 && l <= kMaxMessageLength;
   }
 
   // ── Actions ───────────────────────────────────────────────────────────────
@@ -82,31 +46,12 @@ class _MessagePageState extends ConsumerState<MessagePage> {
   Future<void> _send() async {
     if (!_canSend) return;
     FocusScope.of(context).unfocus();
-
-    String content;
-    switch (_selectedType) {
-      case _MsgType.message:
-        content = _textCtrl.text.trim();
-        _textCtrl.clear();
-        break;
-      case _MsgType.color:
-        content = _colorToHex(_selectedColor);
-        break;
-      case _MsgType.icon:
-        content = _selectedEmoji!;
-        break;
-      case _MsgType.url:
-        content = _urlCtrl.text.trim();
-        if (!content.startsWith('http://') && !content.startsWith('https://')) {
-          content = 'https://$content';
-        }
-        _urlCtrl.clear();
-        break;
-    }
-
+    final content = _textCtrl.text.trim();
+    _textCtrl.clear();
+    setState(() {});
     await ref
         .read(messageNotifierProvider(widget.contact).notifier)
-        .sendTypedMessage(_selectedType.key, content);
+        .sendMessage(content);
     _scrollToBottom();
   }
 
@@ -129,55 +74,46 @@ class _MessagePageState extends ConsumerState<MessagePage> {
     });
   }
 
-  void _pickColor() {
-    Color temp = _selectedColor;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Choisir une couleur'),
-        content: SingleChildScrollView(
-          child: BlockPicker(
-            pickerColor: _selectedColor,
-            onColorChanged: (c) => temp = c,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B4FA0),
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              setState(() => _selectedColor = temp);
-              Navigator.pop(ctx);
-            },
-            child: const Text('Confirmer'),
-          ),
-        ],
-      ),
+  /// Insère [emoji] à la position du curseur dans le champ texte.
+  void _insertEmoji(String emoji) {
+    final text = _textCtrl.text;
+    final sel = _textCtrl.selection;
+    final start = sel.start.clamp(0, text.length);
+    final end = sel.end.clamp(0, text.length);
+    final newText = text.replaceRange(start, end, emoji);
+    _textCtrl.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: start + emoji.length),
     );
+    setState(() {});
   }
 
-  void _pickEmoji() {
+  void _showEmojiPicker() {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
             const Text(
               'Choisir un emoji',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2D1B4E),
               ),
@@ -194,19 +130,11 @@ class _MessagePageState extends ConsumerState<MessagePage> {
               itemCount: _kEmojis.length,
               itemBuilder: (_, i) => GestureDetector(
                 onTap: () {
-                  setState(() => _selectedEmoji = _kEmojis[i]);
                   Navigator.pop(ctx);
+                  _insertEmoji(_kEmojis[i]);
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: _selectedEmoji == _kEmojis[i]
-                        ? const Color(0xFFE6D5F5)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(_kEmojis[i], style: const TextStyle(fontSize: 24)),
-                  ),
+                child: Center(
+                  child: Text(_kEmojis[i], style: const TextStyle(fontSize: 24)),
                 ),
               ),
             ),
@@ -348,198 +276,56 @@ class _MessagePageState extends ConsumerState<MessagePage> {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _TypeSelector(
-              selected: _selectedType,
-              onChanged: (t) => setState(() {
-                _selectedType = t;
-                if (t != _MsgType.icon) _selectedEmoji = null;
-              }),
+            // Bouton emoji — insère dans le champ texte
+            _EmojiButton(onPressed: _showEmojiPicker),
+            const SizedBox(width: 8),
+            // Champ principal (texte, emoji, URL…)
+            Expanded(
+              child: _MessageTextField(
+                controller: _textCtrl,
+                onChanged: () => setState(() {}),
+                onSubmitted: _send,
+              ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(child: _buildTypeInput()),
-                const SizedBox(width: 8),
-                _SendButton(
-                  enabled: !state.isSending && _canSend,
-                  isSending: state.isSending,
-                  onPressed: _send,
-                ),
-              ],
+            const SizedBox(width: 8),
+            _SendButton(
+              enabled: !state.isSending && _canSend,
+              isSending: state.isSending,
+              onPressed: _send,
             ),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildTypeInput() {
-    switch (_selectedType) {
-      case _MsgType.message:
-        return _MessageTextField(
-          controller: _textCtrl,
-          onChanged: () => setState(() {}),
-          onSubmitted: _send,
-        );
-
-      case _MsgType.color:
-        return GestureDetector(
-          onTap: _pickColor,
-          child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0EBF8),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: _selectedColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  _colorToHex(_selectedColor),
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                    color: Color(0xFF2D1B4E),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Spacer(),
-                const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF6B4FA0)),
-              ],
-            ),
-          ),
-        );
-
-      case _MsgType.icon:
-        return GestureDetector(
-          onTap: _pickEmoji,
-          child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0EBF8),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Row(
-              children: [
-                if (_selectedEmoji != null)
-                  Text(_selectedEmoji!, style: const TextStyle(fontSize: 26))
-                else
-                  const Icon(Icons.emoji_emotions_outlined,
-                      color: Colors.grey, size: 24),
-                const SizedBox(width: 10),
-                Text(
-                  _selectedEmoji != null
-                      ? 'Emoji sélectionné'
-                      : 'Appuyer pour choisir un emoji',
-                  style: TextStyle(
-                    color: _selectedEmoji != null
-                        ? const Color(0xFF2D1B4E)
-                        : Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-                const Spacer(),
-                const Icon(Icons.arrow_drop_down, color: Color(0xFF6B4FA0)),
-              ],
-            ),
-          ),
-        );
-
-      case _MsgType.url:
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0EBF8),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: TextField(
-            controller: _urlCtrl,
-            keyboardType: TextInputType.url,
-            textInputAction: TextInputAction.send,
-            decoration: const InputDecoration(
-              hintText: 'https://...',
-              hintStyle: TextStyle(color: Colors.grey),
-              prefixIcon:
-                  Icon(Icons.link, color: Color(0xFF6B4FA0), size: 20),
-              border: InputBorder.none,
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
-            onChanged: (_) => setState(() {}),
-            onSubmitted: (_) => _send(),
-          ),
-        );
-    }
-  }
 }
 
-// ── Sélecteur de type ─────────────────────────────────────────────────────────
+// ── Bouton emoji ──────────────────────────────────────────────────────────────
 
-class _TypeSelector extends StatelessWidget {
-  final _MsgType selected;
-  final ValueChanged<_MsgType> onChanged;
-
-  const _TypeSelector({required this.selected, required this.onChanged});
+class _EmojiButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _EmojiButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: _MsgType.values.map((type) {
-        final isSelected = type == selected;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => onChanged(type),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF6B4FA0)
-                    : const Color(0xFFF0EBF8),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(type.iconData,
-                      size: 16,
-                      color: isSelected ? Colors.white : const Color(0xFF6B4FA0)),
-                  const SizedBox(height: 2),
-                  Text(
-                    type.label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: isSelected ? Colors.white : const Color(0xFF6B4FA0),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return Material(
+      color: const Color(0xFFF0EBF8),
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: const Padding(
+          padding: EdgeInsets.all(10),
+          child: Icon(
+            Icons.emoji_emotions_outlined,
+            color: Color(0xFF6B4FA0),
+            size: 22,
           ),
-        );
-      }).toList(),
+        ),
+      ),
     );
   }
 }
@@ -589,7 +375,7 @@ class _MessageTextField extends StatelessWidget {
             minLines: 1,
             textCapitalization: TextCapitalization.sentences,
             decoration: const InputDecoration(
-              hintText: 'Message…',
+              hintText: 'Message, lien, emoji…',
               hintStyle: TextStyle(color: Colors.grey),
               border: InputBorder.none,
               contentPadding:
@@ -607,6 +393,8 @@ class _MessageTextField extends StatelessWidget {
 // ── Widgets partagés ──────────────────────────────────────────────────────────
 
 class _EncryptionBanner extends StatelessWidget {
+  const _EncryptionBanner();
+
   @override
   Widget build(BuildContext context) {
     return Container(

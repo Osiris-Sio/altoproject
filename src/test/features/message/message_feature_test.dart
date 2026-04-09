@@ -32,15 +32,13 @@ void main() {
       expect(state.isSending, false);
       expect(state.isRefreshing, false);
       expect(state.error, isNull);
-      expect(state.messageSent, false);
     });
 
     test('copyWith() met à jour les champs correctement', () {
       final state = MessageState.initial();
-      final updated = state.copyWith(isSending: true, messageSent: true);
+      final updated = state.copyWith(isSending: true);
 
       expect(updated.isSending, true);
-      expect(updated.messageSent, true);
       expect(updated.messages, isEmpty); // non modifié
     });
 
@@ -52,13 +50,6 @@ void main() {
       expect(cleared.error, isNull);
     });
 
-    test('copyWith(clearMessageSent: true) remet messageSent à false', () {
-      final state = MessageState.initial().copyWith(messageSent: true);
-      expect(state.messageSent, true);
-
-      final cleared = state.copyWith(clearMessageSent: true);
-      expect(cleared.messageSent, false);
-    });
 
     test('addMessage via copyWith préserve les messages existants', () {
       final msg1 = Message(

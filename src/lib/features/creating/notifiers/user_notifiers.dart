@@ -45,6 +45,14 @@ class UserNotifiers extends AsyncNotifier<User> {
     }
   }
 
+  /// Met à jour uniquement le nom/prénom (sans régénérer les clés RSA).
+  Future<void> updateNames(String firstName, String lastName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_firstName', firstName);
+    await prefs.setString('user_lastName', lastName);
+    state = AsyncData(User(firstName: firstName, lastName: lastName));
+  }
+
   Future<void> reset() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
