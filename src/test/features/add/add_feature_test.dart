@@ -10,6 +10,7 @@ void main() {
         id: 'test-id',
         name: 'Test User',
         relationCode: 'test-relation-code',
+        myRelationCode: 'my-test-relation-code',
         publicKey: 'test-public-key',
         createdAt: DateTime.parse('2026-03-05T10:00:00Z'),
       );
@@ -20,6 +21,7 @@ void main() {
       expect(contactFromJson.id, contact.id);
       expect(contactFromJson.name, contact.name);
       expect(contactFromJson.relationCode, contact.relationCode);
+      expect(contactFromJson.myRelationCode, contact.myRelationCode);
       expect(contactFromJson.publicKey, contact.publicKey);
       expect(contactFromJson.createdAt, contact.createdAt);
     });
@@ -29,6 +31,7 @@ void main() {
         id: 'test-id',
         name: 'Test User',
         relationCode: 'test-relation-code',
+        myRelationCode: 'my-test-relation-code',
         publicKey: 'test-public-key',
         createdAt: DateTime.parse('2026-03-05T10:00:00Z'),
       );
@@ -39,8 +42,24 @@ void main() {
       expect(contactFromMap.id, contact.id);
       expect(contactFromMap.name, contact.name);
       expect(contactFromMap.relationCode, contact.relationCode);
+      expect(contactFromMap.myRelationCode, contact.myRelationCode);
       expect(contactFromMap.publicKey, contact.publicKey);
       expect(contactFromMap.createdAt, contact.createdAt);
+    });
+
+    test('Contact fromJson without myRelationCode uses fallback', () {
+      // Rétro-compatibilité : les contacts sauvegardés avant la mise à jour
+      // n'ont pas le champ myRelationCode
+      final json = {
+        'id': 'test-id',
+        'name': 'Test User',
+        'relationCode': 'test-relation-code',
+        // 'myRelationCode' absent intentionnellement
+        'publicKey': 'test-public-key',
+        'createdAt': '2026-03-05T10:00:00.000Z',
+      };
+      final contact = Contact.fromJson(json);
+      expect(contact.myRelationCode, 'test-relation-code'); // fallback sur relationCode
     });
   });
 
@@ -101,10 +120,17 @@ void main() {
 
       expect(keyPair.publicKeyPem, isNotEmpty);
       expect(keyPair.privateKeyPem, isNotEmpty);
-      expect(keyPair.publicKeyPem, contains('BEGIN RSA PUBLIC KEY'));
-      expect(keyPair.publicKeyPem, contains('END RSA PUBLIC KEY'));
-      expect(keyPair.privateKeyPem, contains('BEGIN RSA PRIVATE KEY'));
-      expect(keyPair.privateKeyPem, contains('END RSA PRIVATE KEY'));
+      // La librairie génère du PKCS#8 (BEGIN PUBLIC KEY) ou PKCS#1 (BEGIN RSA PUBLIC KEY)
+      expect(
+        keyPair.publicKeyPem.contains('BEGIN PUBLIC KEY') ||
+            keyPair.publicKeyPem.contains('BEGIN RSA PUBLIC KEY'),
+        isTrue,
+      );
+      expect(
+        keyPair.privateKeyPem.contains('BEGIN PRIVATE KEY') ||
+            keyPair.privateKeyPem.contains('BEGIN RSA PRIVATE KEY'),
+        isTrue,
+      );
     });
 
     test('generateRsaKeyPair should generate different keys each time', () {

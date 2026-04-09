@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:altoproject/core/config/app_config.dart';
 import 'package:altoproject/core/models/contact.dart';
 import '../models/pairing_data.dart';
 import 'package:altoproject/services/crypto_service.dart';
@@ -11,7 +14,6 @@ import 'package:altoproject/services/pairing_api_service.dart';
 /// Notifier pour gérer l'ajout d'un utilisateur
 class AddUserNotifier extends StateNotifier<PairingState> {
   final PairingApiService _apiService;
-  final CryptoService _cryptoService;
   final KeyStorage _keyStorage;
   final DatabaseService _databaseService;
 
@@ -20,16 +22,18 @@ class AddUserNotifier extends StateNotifier<PairingState> {
   String? _myPublicKey;
   String? _myPrivateKey;
 
-  /// Nombre max de cycles de polling (2 s × 60 = 2 min)
-  static const _maxPollingCycles = 60;
+  /// Nombre max de cycles de polling
+  /// (AppConfig.pollingInterval × _maxPollingCycles ≥ pairingTimeout)
+  static final _maxPollingCycles =
+      AppConfig.pairingTimeout.inSeconds ~/
+          AppConfig.pollingInterval.inSeconds;
 
   AddUserNotifier({
     required PairingApiService apiService,
-    required CryptoService cryptoService,
+    required CryptoService cryptoService, // conservé pour rétro-compat DI
     required KeyStorage keyStorage,
     required DatabaseService databaseService,
   })  : _apiService = apiService,
-        _cryptoService = cryptoService,
         _keyStorage = keyStorage,
         _databaseService = databaseService,
         super(PairingState.initial());
@@ -37,8 +41,9 @@ class AddUserNotifier extends StateNotifier<PairingState> {
   /// Génère les clés et le QR code (Mode: Je montre mon QR code)
   Future<String> generateQrCode() async {
     try {
-      // Génération de la paire de clés RSA
-      final keyPair = _cryptoService.generateRsaKeyPair();
+      // Génération RSA dans un isolate (non bloquant)
+      final keyPair = await compute(
+          _generateRsaKeyPair, AppConfig.rsaKeyBitLength);
       _myPublicKey = keyPair.publicKeyPem;
       _myPrivateKey = keyPair.privateKeyPem;
 
@@ -54,19 +59,22 @@ class AddUserNotifier extends StateNotifier<PairingState> {
       // Démarrage du polling pour détecter le match
       _startPolling(_myRelationCode!);
 
-      // Retourne le relationCode à encoder dans le QR code
       return _myRelationCode!;
     } catch (e) {
-      state = PairingState.error('Erreur lors de la génération du QR code: $e');
+      state = PairingState.error('Erreur génération QR : $e');
       rethrow;
     }
   }
 
   /// Traite le QR code scanné (Mode: Je scanne le QR code de l'autre)
-  Future<void> handleScannedQrCode(String scannedRelationCode) async {
+  Future<void> handleScannedQrCode(String scannedCode) async {
     try {
-      // Génération de ma paire de clés
-      final keyPair = _cryptoService.generateRsaKeyPair();
+      // Extraire le relationCode (UUID brut ou JSON)
+      final relationCodeA = _extractRelationCode(scannedCode);
+
+      // Génération RSA dans un isolate (non bloquant)
+      final keyPair = await compute(
+          _generateRsaKeyPair, AppConfig.rsaKeyBitLength);
       _myPublicKey = keyPair.publicKeyPem;
       _myPrivateKey = keyPair.privateKeyPem;
 
@@ -75,43 +83,56 @@ class AddUserNotifier extends StateNotifier<PairingState> {
 
       // Match avec le serveur
       final partnerResult = await _apiService.matchPairing(
-        relationCodeA: scannedRelationCode,
+        relationCodeA: relationCodeA,
         relationCodeB: _myRelationCode!,
         publicKeyB: _myPublicKey!,
       );
-      // Convertir PairingPartnerData → PairingData (même structure)
+
       final partnerData = PairingData(
         relationCode: partnerResult.relationCode,
         publicKey: partnerResult.publicKey,
       );
 
-      // Sauvegarde temporaire des données du partenaire
       state = state.copyWith(
         status: PairingStatus.completed,
         partnerData: partnerData,
       );
 
-      // Sauvegarde de mes clés
+      // Sauvegarde de mes clés (indexées par mon relationCode)
       await _keyStorage.saveKeyPair(
         _myRelationCode!,
         publicKeyPem: _myPublicKey!,
         privateKeyPem: _myPrivateKey!,
       );
 
-      // Démarrage du polling pour détecter la finalisation
-      _startPollingForFinalization(scannedRelationCode);
+      // Polling côté Bob pour détecter la finalisation
+      _startPollingForFinalization(relationCodeA);
     } catch (e) {
-      state = PairingState.error('Erreur lors du scan: $e');
+      state = PairingState.error('Erreur lors du scan : $e');
       rethrow;
     }
   }
+
+  /// Tente d'extraire un UUID depuis un QR code brut ou JSON.
+  String _extractRelationCode(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.startsWith('{')) {
+      try {
+        final map = jsonDecode(trimmed) as Map<String, dynamic>;
+        final code = map['relationCode'];
+        if (code is String && code.isNotEmpty) return code;
+      } catch (_) {}
+    }
+    return trimmed;
+  }
+
 
   /// Démarre le polling pour détecter le match (côté initiateur)
   void _startPolling(String relationCode) {
     _pollingTimer?.cancel();
     int cycles = 0;
 
-    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _pollingTimer = Timer.periodic(AppConfig.pollingInterval, (timer) async {
       cycles++;
       if (cycles >= _maxPollingCycles) {
         timer.cancel();
@@ -163,7 +184,7 @@ class AddUserNotifier extends StateNotifier<PairingState> {
     _pollingTimer?.cancel();
     int cycles = 0;
 
-    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _pollingTimer = Timer.periodic(AppConfig.pollingInterval, (timer) async {
       cycles++;
       if (cycles >= _maxPollingCycles) {
         timer.cancel();
@@ -188,11 +209,20 @@ class AddUserNotifier extends StateNotifier<PairingState> {
       if (state.partnerData == null) {
         throw Exception('Aucune donnée de partenaire disponible');
       }
+      if (_myRelationCode == null) {
+        throw Exception('Code de relation manquant — relancez le pairing');
+      }
+
+      // Annuler le polling en cours (Bob peut encore être en attente de "finalized")
+      _pollingTimer?.cancel();
 
       final contact = Contact(
         id: const Uuid().v4(),
         name: contactName,
+        // Code du PARTENAIRE — pour récupérer ses messages (GET /element)
         relationCode: state.partnerData!.relationCode,
+        // NOTRE code — pour envoyer des messages (POST /element) + retrouver notre clé privée
+        myRelationCode: _myRelationCode!,
         publicKey: state.partnerData!.publicKey,
         createdAt: DateTime.now(),
       );
@@ -225,5 +255,13 @@ class AddUserNotifier extends StateNotifier<PairingState> {
     _pollingTimer?.cancel();
     super.dispose();
   }
+}
+
+// ── Fonction top-level pour compute() ────────────────────────────────────────
+
+/// Génère une paire de clés RSA dans un isolate séparé (non bloquant).
+({String publicKeyPem, String privateKeyPem}) _generateRsaKeyPair(
+    int bitLength) {
+  return CryptoService().generateRsaKeyPair(bitLength: bitLength);
 }
 

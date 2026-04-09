@@ -1,28 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/contact_tile.dart';
-import '../providers/contact_provider.dart';
+import '../providers/contacts_provider.dart';
 import '../../add/view/scan_pairing_screen.dart';
-import '../../profile/view/profile_screen.dart';
-import '../../profile/notifiers/profile_notifier.dart';
+import '../../add/view/show_qr_screen.dart';
 
 /// Corps de l'onglet "Messages" — intégré dans MainScaffold via IndexedStack.
-/// Pas de Scaffold propre : c'est MainScaffold qui fournit l'AppBar et la bottom bar.
-class ContactPage extends StatelessWidget {
+class ContactPage extends ConsumerWidget {
   const ContactPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final contactList = ContactProvider().contacts;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contactsAsync = ref.watch(contactsProvider);
 
-    if (contactList.isEmpty) {
-      return _EmptyContactsView();
-    }
-
-    return ListView.separated(
-      itemCount: contactList.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (_, index) => ContactTile(contact: contactList[index]),
+    return contactsAsync.when(
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: Color(0xFF6B4FA0)),
+      ),
+      error: (e, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text('Erreur : $e',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => ref.invalidate(contactsProvider),
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
+      data: (contacts) {
+        if (contacts.isEmpty) {
+          return _EmptyContactsView();
+        }
+        return RefreshIndicator(
+          color: const Color(0xFF6B4FA0),
+          onRefresh: () => ref.read(contactsProvider.notifier).refresh(),
+          child: ListView.separated(
+            itemCount: contacts.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) => ContactTile(contact: contacts[i]),
+          ),
+        );
+      },
     );
   }
 }
@@ -34,17 +59,33 @@ class _EmptyContactsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Expanded(
+        Expanded(
           child: Center(
-            child: Text(
-              'Vous n\'avez pas de contacts\nUtilisez le bouton "+" pour commencer',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 15, height: 1.6),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.people_outline,
+                    size: 72, color: Colors.grey.shade300),
+                const SizedBox(height: 16),
+                const Text(
+                  'Aucun contact pour l\'instant',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D1B4E)),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Utilisez le bouton "+" pour ajouter\nvotre premier contact.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.5),
+                ),
+              ],
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(40, 0, 40, 24),
           child: Column(
             children: [
               _ShortcutButton(
@@ -58,16 +99,11 @@ class _EmptyContactsView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _ShortcutButton(
-                icon: Icons.share_outlined,
+                icon: Icons.qr_code_outlined,
                 label: 'Partager mon QR Code',
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => ChangeNotifierProvider(
-                      create: (_) => ProfileNotifier(),
-                      child: const ProfileScreen(),
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (_) => const ShowQrScreen()),
                 ),
               ),
               const SizedBox(height: 20),

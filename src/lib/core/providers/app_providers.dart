@@ -3,7 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:altoproject/core/config/app_config.dart';
 import 'package:altoproject/services/crypto_service.dart';
 import 'package:altoproject/services/database_service.dart';
+import 'package:altoproject/services/element_api_service.dart';
 import 'package:altoproject/services/key_storage.dart';
+import 'package:altoproject/services/message_storage_service.dart';
 import 'package:altoproject/services/pairing_api_service.dart';
 
 /// Stockage sécurisé Flutter (singleton)
@@ -29,5 +31,15 @@ final databaseServiceProvider = Provider<DatabaseService>((ref) {
 /// Service d'API pairing
 final pairingApiServiceProvider = Provider<PairingApiService>((ref) {
   return PairingApiService(baseUrl: AppConfig.pairingApiBaseUrl);
+});
+
+/// Service d'API échange d'éléments chiffrés
+final elementApiServiceProvider = Provider<ElementApiService>((ref) {
+  return ElementApiService(baseUrl: AppConfig.pairingApiBaseUrl);
+});
+
+/// Service de persistance locale des messages
+final messageStorageServiceProvider = Provider<MessageStorageService>((ref) {
+  return MessageStorageService();
 });
 

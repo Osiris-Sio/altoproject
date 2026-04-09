@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permission caméra requise pour le scanner QR code -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Accès réseau pour l'API de pairing et de messagerie -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="altoproject"
         android:name="${applicationName}"

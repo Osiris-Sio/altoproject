@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:altoproject/features/add/providers/add_providers.dart';
 import 'package:altoproject/features/add/view/add_confirm_screen.dart';
 
@@ -16,6 +17,7 @@ class ScanPairingScreen extends ConsumerStatefulWidget {
 class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
   MobileScannerController? cameraController;
   bool _isProcessing = false;
+  bool _cameraPermissionDenied = false;
 
   // Champ de saisie manuelle pour le fallback web
   final TextEditingController _manualCodeCtrl = TextEditingController();
@@ -24,7 +26,19 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
   void initState() {
     super.initState();
     if (!kIsWeb) {
-      cameraController = MobileScannerController();
+      _initCamera();
+    }
+  }
+
+  Future<void> _initCamera() async {
+    final status = await Permission.camera.request();
+    if (!mounted) return;
+    if (status.isGranted) {
+      setState(() {
+        cameraController = MobileScannerController();
+      });
+    } else {
+      setState(() => _cameraPermissionDenied = true);
     }
   }
 
@@ -144,6 +158,61 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
     }
 
     // ── Écran caméra (Android / iOS) ─────────────────────────────────────
+    if (_cameraPermissionDenied) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFEDE6F5),
+        appBar: AppBar(
+          title: const Text('Scanner le QR code'),
+          backgroundColor: const Color(0xFFEDE6F5),
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.no_photography_outlined,
+                    size: 72, color: Colors.red),
+                const SizedBox(height: 24),
+                const Text(
+                  'Permission caméra refusée',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D1B4E)),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Autorisez l\'accès à la caméra dans les paramètres de l\'application.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 28),
+                ElevatedButton.icon(
+                  onPressed: openAppSettings,
+                  icon: const Icon(Icons.settings),
+                  label: const Text('Ouvrir les paramètres'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6B4FA0),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (!kIsWeb && cameraController == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(

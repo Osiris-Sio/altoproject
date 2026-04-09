@@ -108,12 +108,17 @@ class PairingPartnerData {
     required this.publicKey,
   });
 
-  /// Convertit en [Contact] complet (le nom est saisi par l'utilisateur).
-  Contact toContact({required String id, required String name}) {
+  /// Convertit en [Contact] complet (le nom et myRelationCode sont fournis par l'appelant).
+  Contact toContact({
+    required String id,
+    required String name,
+    required String myRelationCode,
+  }) {
     return Contact(
       id: id,
       name: name,
       relationCode: relationCode,
+      myRelationCode: myRelationCode,
       publicKey: publicKey,
       createdAt: DateTime.now(),
     );
