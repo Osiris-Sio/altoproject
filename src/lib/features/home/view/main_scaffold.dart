@@ -45,7 +45,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: AppColors.adaptiveSurface(context),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.qr_code_scanner,
@@ -67,7 +67,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: AppColors.adaptiveSurface(context),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.qr_code, color: AppColors.primary),
@@ -103,8 +103,8 @@ class _MainScaffoldState extends State<MainScaffold> {
                 'Alto',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
               ),
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.dark,
+              backgroundColor: AppColors.appBarBg(context),
+              foregroundColor: AppColors.onSurface(context),
               elevation: 0,
               surfaceTintColor: Colors.transparent,
             )
@@ -153,7 +153,7 @@ class _BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),

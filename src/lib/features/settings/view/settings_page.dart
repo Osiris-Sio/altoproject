@@ -351,7 +351,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
                 Center(
                   child: Text(
-                    'Alto v1.0.0 — RSA-2048 end-to-end encryption',
+                    'Alto v1.0.2 — RSA-2048 end-to-end encryption',
                     style:
                         TextStyle(color: Colors.grey.shade500, fontSize: 11),
                   ),

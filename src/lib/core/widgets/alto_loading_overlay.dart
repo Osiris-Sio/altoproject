@@ -41,10 +41,10 @@ class AltoLoadingOverlay extends StatelessWidget {
                   Text(
                     message!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.dark,
+                      color: AppColors.onSurface(context),
                     ),
                   ),
                 ],

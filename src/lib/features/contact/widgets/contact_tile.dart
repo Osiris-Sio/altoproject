@@ -89,7 +89,7 @@ class ContactTile extends ConsumerWidget {
       },
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.adaptiveSurface(context),
           child: Text(
             contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
             style: const TextStyle(
