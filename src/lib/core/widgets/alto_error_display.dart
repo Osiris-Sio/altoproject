@@ -32,7 +32,7 @@ class AltoErrorDisplay extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
+                color: Colors.red.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -42,12 +42,12 @@ class AltoErrorDisplay extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Oups !',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.dark,
+                color: AppColors.onSurface(context),
               ),
             ),
             const SizedBox(height: 8),

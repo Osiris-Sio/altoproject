@@ -130,12 +130,12 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundMedium,
+      backgroundColor: AppColors.pairingBg(context),
       appBar: AppBar(
         title: const Text('Mon QR Code'),
-        backgroundColor: AppColors.backgroundMedium,
+        backgroundColor: AppColors.pairingBg(context),
         elevation: 0,
-        foregroundColor: AppColors.dark,
+        foregroundColor: AppColors.onSurface(context),
       ),
       body: SafeArea(
         child: Center(
@@ -198,14 +198,14 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
             child: const Icon(Icons.timer_off, size: 60, color: Colors.red),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Code expiré',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.dark,
-            ),
+        const Text(
+          'Code expiré',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: Colors.red,
           ),
+        ),
           const SizedBox(height: 8),
           const Text(
             'Le QR code n\'est plus valide.\nGénérez-en un nouveau.',
@@ -224,12 +224,12 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
     // ── QR Code actif ───────────────────────────────────────────────────────
     return Column(
       children: [
-        const Text(
+        Text(
           'Faites scanner ce QR code',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppColors.dark,
+            color: AppColors.onSurface(context),
           ),
         ),
         const SizedBox(height: 6),
@@ -256,7 +256,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.cardBg(context),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -281,7 +281,7 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardBg(context),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.muted),
           ),
@@ -306,13 +306,13 @@ class _ShowQrScreenState extends ConsumerState<ShowQrScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: _remainingSeconds <= 30
-                ? Colors.orange.shade50
-                : Colors.grey.shade100,
+                ? Colors.orange.withValues(alpha: 0.12)
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: _remainingSeconds <= 30
-                  ? Colors.orange.shade200
-                  : Colors.grey.shade300,
+                  ? Colors.orange.shade300
+                  : Theme.of(context).colorScheme.outlineVariant,
             ),
           ),
           child: Row(

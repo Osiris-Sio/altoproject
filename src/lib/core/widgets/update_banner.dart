@@ -1,13 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:altoproject/core/config/app_colors.dart';
 import 'package:altoproject/core/providers/update_provider.dart';
 import 'package:altoproject/services/update_service.dart';
 
 /// États du téléchargement in-app.
-enum _DownloadState { idle, downloading, error }
+enum _DownloadState { idle, downloading, error, permissionDenied }
 
 /// Bannière de mise à jour affichée en haut de l'écran principal.
 class UpdateBanner extends ConsumerStatefulWidget {
@@ -48,6 +49,13 @@ class _UpdateBannerState extends ConsumerState<UpdateBanner> {
           );
       // L'installeur Android prend la main → pas besoin de changer l'état
       if (mounted) setState(() => _downloadState = _DownloadState.idle);
+    } on InstallPermissionDeniedException {
+      if (mounted) {
+        setState(() {
+          _downloadState = _DownloadState.permissionDenied;
+          _errorMessage = null;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -125,7 +133,8 @@ class _UpdateBannerState extends ConsumerState<UpdateBanner> {
   Widget _buildBanner(BuildContext context, UpdateInfo info) {
     return Material(
       elevation: 2,
-      color: _downloadState == _DownloadState.error
+      color: (_downloadState == _DownloadState.error ||
+              _downloadState == _DownloadState.permissionDenied)
           ? Colors.red.shade700
           : AppColors.primary,
       child: SafeArea(
@@ -166,6 +175,22 @@ class _UpdateBannerState extends ConsumerState<UpdateBanner> {
                     _ActionButton(
                       label: 'Réessayer',
                       onPressed: () => _downloadAndInstall(info),
+                    ),
+                    const SizedBox(width: 4),
+                    _CloseButton(onPressed: () => setState(() => _dismissed = true)),
+                  ],
+
+                  if (_downloadState == _DownloadState.permissionDenied) ...[
+                    _ActionButton(
+                      label: 'Autoriser',
+                      onPressed: () async {
+                        // Ouvre directement les paramètres d'installation
+                        await openAppSettings();
+                        // Après retour, réinitialiser pour permettre un nouvel essai
+                        if (mounted) {
+                          setState(() => _downloadState = _DownloadState.idle);
+                        }
+                      },
                     ),
                     const SizedBox(width: 4),
                     _CloseButton(onPressed: () => setState(() => _dismissed = true)),
@@ -224,7 +249,9 @@ class _UpdateBannerState extends ConsumerState<UpdateBanner> {
       child: Icon(
         _downloadState == _DownloadState.error
             ? Icons.error_outline
-            : Icons.system_update_rounded,
+            : _downloadState == _DownloadState.permissionDenied
+                ? Icons.lock_outline
+                : Icons.system_update_rounded,
         color: Colors.white,
         size: 20,
       ),
@@ -270,6 +297,28 @@ class _UpdateBannerState extends ConsumerState<UpdateBanner> {
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.75), fontSize: 10),
             maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      );
+    }
+    if (_downloadState == _DownloadState.permissionDenied) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Permission requise',
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13),
+          ),
+          Text(
+            'Autorisez Alto à installer des apps inconnues',
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85), fontSize: 10),
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],

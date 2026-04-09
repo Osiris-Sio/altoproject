@@ -5,7 +5,18 @@ import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:altoproject/core/config/app_config.dart';
+
+/// Exception levée quand la permission d'installation est refusée.
+/// Utilisée par UpdateBanner pour afficher un bouton "Autoriser".
+class InstallPermissionDeniedException implements Exception {
+  final String message;
+  const InstallPermissionDeniedException(this.message);
+
+  @override
+  String toString() => message;
+}
 
 /// Résultat de la vérification de mise à jour.
 class UpdateInfo {
@@ -155,6 +166,21 @@ class UpdateService {
     }
     await sink.close();
     onProgress?.call(1.0);
+
+    // ── Vérification permission installation (Android 8+) ─────────────────
+    if (Platform.isAndroid) {
+      var status = await Permission.requestInstallPackages.status;
+      if (!status.isGranted) {
+        // Ouvre automatiquement Paramètres → Apps → Alto → Installer apps inconnues
+        status = await Permission.requestInstallPackages.request();
+        if (!status.isGranted) {
+          throw const InstallPermissionDeniedException(
+            'Permission "Installer des applications inconnues" refusée.\n'
+            'Activez-la dans Paramètres → Apps → Alto.',
+          );
+        }
+      }
+    }
 
     // Déclencher l'installeur système Android
     final result = await OpenFile.open(apkFile.path);

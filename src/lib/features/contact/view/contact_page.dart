@@ -56,12 +56,12 @@ class _EmptyContactsView extends StatelessWidget {
                 Icon(Icons.people_outline,
                     size: 72, color: Colors.grey.shade300),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Aucun contact pour l\'instant',
                   style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.dark),
+                      color: AppColors.onSurface(context)),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -126,7 +126,7 @@ class _ShortcutButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.muted, width: 1.5),
-          backgroundColor: AppColors.surfaceAccent,
+          backgroundColor: AppColors.accentBg(context),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),

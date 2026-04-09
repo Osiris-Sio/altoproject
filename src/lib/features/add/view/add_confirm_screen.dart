@@ -78,12 +78,12 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
     final pairingState = ref.watch(addUserNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundMedium,
+      backgroundColor: AppColors.pairingBg(context),
       appBar: AppBar(
         title: const Text('Confirmer l\'ajout'),
-        backgroundColor: AppColors.backgroundMedium,
+        backgroundColor: AppColors.pairingBg(context),
         elevation: 0,
-        foregroundColor: AppColors.dark,
+        foregroundColor: AppColors.onSurface(context),
         automaticallyImplyLeading: false,
       ),
       body: Stack(
@@ -98,8 +98,8 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
                   Container(
                     width: 90,
                     height: 90,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBg(context),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.person_outline,
@@ -123,7 +123,7 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
                       decoration: InputDecoration(
                         hintText: 'Nom du contact',
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: AppColors.cardBg(context),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide.none,
@@ -267,7 +267,7 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -285,14 +285,14 @@ class _AddConfirmScreenState extends ConsumerState<AddConfirmScreen> {
             const Icon(Icons.key, size: 16, color: Colors.grey),
             const SizedBox(width: 8),
             Text('Code : $shortCode',
-                style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                style: TextStyle(fontSize: 13, color: AppColors.onSurface(context))),
           ]),
           const SizedBox(height: 6),
           const Row(children: [
             Icon(Icons.lock_outline, size: 16, color: Colors.grey),
             SizedBox(width: 8),
             Text('Clé publique reçue ✓',
-                style: TextStyle(fontSize: 13, color: Colors.black87)),
+                style: TextStyle(fontSize: 13, color: Colors.grey)),
           ]),
         ],
       ),

@@ -44,7 +44,7 @@ class MessageBubble extends StatelessWidget {
         ),
         padding: _paddingForContent(),
         decoration: BoxDecoration(
-          color: isMine ? AppColors.primary : Colors.white,
+          color: isMine ? AppColors.primary : AppColors.cardBg(context),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -107,7 +107,7 @@ class MessageBubble extends StatelessWidget {
           message.content,
           style: TextStyle(
             fontSize: 15,
-            color: message.isMine ? Colors.white : Colors.black87,
+            color: message.isMine ? Colors.white : Theme.of(context).colorScheme.onSurface,
           ),
         );
 
@@ -128,7 +128,7 @@ class MessageBubble extends StatelessWidget {
           message.content,
           style: TextStyle(
             fontSize: 15,
-            color: message.isMine ? Colors.white : Colors.black87,
+            color: message.isMine ? Colors.white : Theme.of(context).colorScheme.onSurface,
           ),
         );
     }

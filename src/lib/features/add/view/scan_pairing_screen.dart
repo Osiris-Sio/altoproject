@@ -91,12 +91,12 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
     // ── Fallback Web / Safari : saisie manuelle du code ──────────────────
     if (kIsWeb) {
       return Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.pairingBg(context),
         appBar: AppBar(
           title: const Text('Entrer le code de pairing'),
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.pairingBg(context),
           elevation: 0,
-          foregroundColor: AppColors.dark,
+          foregroundColor: AppColors.onSurface(context),
         ),
         body: Center(
           child: Padding(
@@ -106,10 +106,10 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
               children: [
                 const Icon(Icons.qr_code, size: 80, color: AppColors.primary),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'La caméra n\'est pas disponible sur le web.\nSaisissez le code de pairing manuellement.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                  style: TextStyle(fontSize: 16, color: AppColors.onSurface(context)),
                 ),
                 const SizedBox(height: 24),
                 TextField(
@@ -161,12 +161,12 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
     // ── Écran caméra (Android / iOS) ─────────────────────────────────────
     if (_cameraPermissionDenied) {
       return Scaffold(
-        backgroundColor: AppColors.backgroundMedium,
+        backgroundColor: AppColors.pairingBg(context),
         appBar: AppBar(
           title: const Text('Scanner le QR code'),
-          backgroundColor: AppColors.backgroundMedium,
+          backgroundColor: AppColors.pairingBg(context),
           elevation: 0,
-          foregroundColor: AppColors.dark,
+          foregroundColor: AppColors.onSurface(context),
         ),
         body: Center(
           child: Padding(
@@ -177,12 +177,12 @@ class _ScanPairingScreenState extends ConsumerState<ScanPairingScreen> {
                 const Icon(Icons.no_photography_outlined,
                     size: 72, color: Colors.red),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Permission caméra refusée',
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.dark),
+                      color: AppColors.onSurface(context)),
                 ),
                 const SizedBox(height: 12),
                 const Text(

@@ -111,12 +111,12 @@ class _MessagePageState extends ConsumerState<MessagePage> {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'Choisir un emoji',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.dark,
+                color: AppColors.onSurface(ctx),
               ),
             ),
             const SizedBox(height: 12),
@@ -178,7 +178,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: AppColors.adaptiveSurface(context),
       appBar: _buildAppBar(state),
       body: Column(
         children: [
@@ -194,14 +194,14 @@ class _MessagePageState extends ConsumerState<MessagePage> {
 
   PreferredSizeWidget _buildAppBar(MessageState state) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.appBarBg(context),
       elevation: 0.5,
       leading: const BackButton(color: AppColors.primary),
       title: Row(
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: AppColors.surface,
+            backgroundColor: AppColors.adaptiveSurface(context),
             child: Text(
               widget.contact.name.isNotEmpty
                   ? widget.contact.name[0].toUpperCase()
@@ -220,10 +220,10 @@ class _MessagePageState extends ConsumerState<MessagePage> {
               children: [
                 Text(
                   widget.contact.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.dark,
+                    color: AppColors.onSurface(context),
                   ),
                 ),
                 if (state.isRefreshing)
@@ -273,7 +273,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
 
   Widget _buildInputBar(MessageState state) {
     return Container(
-      color: Colors.white,
+      color: AppColors.appBarBg(context),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: SafeArea(
         top: false,
@@ -313,7 +313,7 @@ class _EmojiButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.inputBackground,
+      color: AppColors.inputBg(context),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onPressed,
@@ -367,7 +367,7 @@ class _MessageTextField extends StatelessWidget {
           ),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.inputBackground,
+            color: AppColors.inputBg(context),
             borderRadius: BorderRadius.circular(24),
           ),
           child: TextField(
@@ -401,7 +401,7 @@ class _EncryptionBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 6),
-      color: AppColors.surfaceAccent,
+      color: AppColors.accentBg(context),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -429,12 +429,12 @@ class _EmptyConversation extends StatelessWidget {
         children: [
           Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Aucun message pour l\'instant',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: AppColors.dark,
+              color: AppColors.onSurface(context),
             ),
           ),
           const SizedBox(height: 8),

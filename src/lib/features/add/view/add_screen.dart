@@ -11,12 +11,12 @@ class AddScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.pairingBg(context),
       appBar: AppBar(
         title: const Text('Ajouter un contact'),
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.pairingBg(context),
         elevation: 0,
-        foregroundColor: AppColors.dark,
+        foregroundColor: AppColors.onSurface(context),
       ),
       body: Center(
         child: Padding(
@@ -27,8 +27,8 @@ class AddScreen extends ConsumerWidget {
               Container(
                 width: 100,
                 height: 100,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: AppColors.cardBg(context),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -38,12 +38,12 @@ class AddScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Connectez-vous avec quelqu\'un',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.dark,
+                  color: AppColors.onSurface(context),
                 ),
                 textAlign: TextAlign.center,
               ),
