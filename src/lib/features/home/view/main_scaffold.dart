@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:altoproject/core/config/app_colors.dart';
+import 'package:altoproject/core/widgets/update_banner.dart';
 import '../../contact/view/contact_page.dart';
 import '../../settings/view/settings_page.dart';
 import '../../add/view/scan_pairing_screen.dart';
@@ -108,11 +109,19 @@ class _MainScaffoldState extends State<MainScaffold> {
               surfaceTintColor: Colors.transparent,
             )
           : null,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          ContactPage(),
-          SettingsPage(),
+      body: Column(
+        children: [
+          // Bannière de mise à jour (visible uniquement si une nouvelle version existe)
+          const UpdateBanner(),
+          Expanded(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: const [
+                ContactPage(),
+                SettingsPage(),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: _BottomBar(

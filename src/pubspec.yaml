@@ -40,6 +40,13 @@ dependencies:
   # Liens cliquables
   url_launcher: ^6.3.1
 
+  # Informations sur la version de l'application
+  package_info_plus: ^8.1.2
+
+  # Téléchargement APK + installation directe
+  path_provider: ^2.1.4
+  open_file: ^3.3.2
+
 
 dev_dependencies:
   flutter_test:
