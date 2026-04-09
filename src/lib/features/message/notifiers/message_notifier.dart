@@ -9,16 +9,9 @@ import 'package:altoproject/services/key_storage.dart';
 import 'package:altoproject/services/message_storage_service.dart';
 import '../models/message.dart';
 
-/// Limite maximale de caractères pour RSA-2048 OAEP (≈ 214 bytes UTF-8).
-/// On limite volontairement à 190 pour conserver de la marge.
+/// Limite max de caractères pour RSA-2048 OAEP (≈ 214 bytes UTF-8).
 const int kMaxMessageLength = 190;
 
-/// Notifier gérant la conversation avec un contact donné.
-///
-/// - Envoi    : chiffre avec la clé publique du contact → POST /element
-/// - Réception: GET /element → déchiffre avec notre clé privée
-/// - Auto-refresh toutes les 5 s
-/// - Persistance locale via [MessageStorageService]
 class MessageNotifier extends StateNotifier<MessageState> {
   final ElementApiService _elementApi;
   final KeyStorage _keyStorage;
@@ -26,7 +19,6 @@ class MessageNotifier extends StateNotifier<MessageState> {
   final Contact _contact;
 
   Timer? _refreshTimer;
-
   static const _autoRefreshInterval = Duration(seconds: 5);
 
   MessageNotifier({
@@ -84,19 +76,17 @@ class MessageNotifier extends StateNotifier<MessageState> {
     _refreshTimer = null;
   }
 
-  // ── Envoi ─────────────────────────────────────────────────────────────────
+  // ── Envoi générique ───────────────────────────────────────────────────────
 
-  /// Chiffre [text] avec la clé publique du contact et le dépose sur le serveur.
-  ///
-  /// Schéma : `POST /element { relationCode: myRelationCode, key, value: base64 }`
-  Future<void> sendMessage(String text) async {
-    final trimmed = text.trim();
+  /// Chiffre [content] avec la clé publique du contact et le dépose
+  /// sur le serveur avec le [type] spécifié (MESSAGE, COLOR, ICON, URL).
+  Future<void> sendTypedMessage(String type, String content) async {
+    final trimmed = content.trim();
     if (trimmed.isEmpty) return;
 
-    if (trimmed.length > kMaxMessageLength) {
+    if (type == 'MESSAGE' && trimmed.length > kMaxMessageLength) {
       state = state.copyWith(
-        error:
-            'Message trop long (max $kMaxMessageLength caractères pour RSA-2048).',
+        error: 'Message trop long (max $kMaxMessageLength caractères).',
       );
       return;
     }
@@ -111,28 +101,25 @@ class MessageNotifier extends StateNotifier<MessageState> {
     state = state.copyWith(isSending: true, clearError: true);
 
     try {
-      // Chiffrement RSA-OAEP avec la clé publique du contact
       final encrypted = await compute(
         _encryptIsolate,
         (publicKeyPem: _contact.publicKey, plaintext: trimmed),
       );
 
-      // Dépôt dans notre boîte (identifiée par myRelationCode)
       await _elementApi.postElement(
         relationCode: _contact.myRelationCode,
-        key: 'MESSAGE',
+        key: type,
         value: encrypted,
       );
 
       final msg = Message(
         id: const Uuid().v4(),
-        type: 'MESSAGE',
+        type: type,
         content: trimmed,
         isMine: true,
         timestamp: DateTime.now(),
       );
 
-      // Persistance locale immédiate
       await _storage.addMessage(
         _contact.id,
         StoredMessage(
@@ -147,7 +134,6 @@ class MessageNotifier extends StateNotifier<MessageState> {
       state = state.copyWith(
         messages: [...state.messages, msg],
         isSending: false,
-        messageSent: true,
       );
     } catch (e) {
       state = state.copyWith(
@@ -156,6 +142,9 @@ class MessageNotifier extends StateNotifier<MessageState> {
       );
     }
   }
+
+  /// Alias pour la compatibilité — envoie un message texte.
+  Future<void> sendMessage(String text) => sendTypedMessage('MESSAGE', text);
 
   // ── Réception ─────────────────────────────────────────────────────────────
 
@@ -228,12 +217,11 @@ class MessageNotifier extends StateNotifier<MessageState> {
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   void clearError() => state = state.copyWith(clearError: true);
-  void clearMessageSent() => state = state.copyWith(clearMessageSent: true);
 
   String _friendlyError(String prefix, Object e) {
     final msg = e.toString();
     if (msg.contains('too large') || msg.contains('input too large')) {
-      return 'Message trop long pour RSA-2048 (max ~$kMaxMessageLength car.).';
+      return 'Contenu trop long pour RSA-2048 (max ~$kMaxMessageLength car.).';
     }
     if (msg.contains('SocketException') || msg.contains('ClientException')) {
       return 'Erreur réseau. Vérifiez votre connexion.';

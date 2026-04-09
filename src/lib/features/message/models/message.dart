@@ -33,15 +33,11 @@ class MessageState {
   final bool isRefreshing;
   final String? error;
 
-  /// `true` juste après l'envoi réussi — utilisé pour le feedback visuel.
-  final bool messageSent;
-
   const MessageState({
     required this.messages,
     this.isSending = false,
     this.isRefreshing = false,
     this.error,
-    this.messageSent = false,
   });
 
   factory MessageState.initial() {
@@ -54,15 +50,12 @@ class MessageState {
     bool? isRefreshing,
     String? error,
     bool clearError = false,
-    bool? messageSent,
-    bool clearMessageSent = false,
   }) {
     return MessageState(
       messages: messages ?? this.messages,
       isSending: isSending ?? this.isSending,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       error: clearError ? null : (error ?? this.error),
-      messageSent: clearMessageSent ? false : (messageSent ?? this.messageSent),
     );
   }
 }

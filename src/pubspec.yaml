@@ -37,6 +37,12 @@ dependencies:
   uuid: ^4.5.1
   permission_handler: ^11.3.1
 
+  # Liens cliquables (Étape 7 — type URL)
+  url_launcher: ^6.3.1
+
+  # Sélecteur de couleur (Étape 7 — type COLOR)
+  flutter_colorpicker: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
